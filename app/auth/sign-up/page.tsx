@@ -28,7 +28,7 @@ export default function SignUpPage() {
 
     const supabase = createClient()
     
-    const { error } = await supabase.auth.signUp({
+    const { error, data } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -47,6 +47,28 @@ export default function SignUpPage() {
       toast.error(error.message)
       setIsLoading(false)
       return
+    }
+
+    // Setup barbershop after successful signup
+    if (data?.user) {
+      try {
+        const response = await fetch('/api/barbershop/setup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: barbershopName,
+            email,
+          }),
+        })
+
+        if (!response.ok) {
+          console.error('Failed to setup barbershop')
+          // Still redirect even if setup fails
+        }
+      } catch (err) {
+        console.error('Error setting up barbershop:', err)
+        // Still redirect even if setup fails
+      }
     }
 
     router.push("/auth/sign-up-success")
