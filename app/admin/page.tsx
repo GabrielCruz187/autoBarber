@@ -14,25 +14,18 @@ export default async function AdminDashboard() {
     redirect("/auth/login")
   }
 
-  // Get the user's barbershop
-  const { data: barbershop } = await supabase
-    .from("barbershops")
-    .select("id, name")
-    .eq("owner_id", user.id)
+  // Get the user's barbershop from profile
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("barbershop_id")
+    .eq("id", user.id)
     .single()
 
-  if (!barbershop) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-        <Scissors className="h-12 w-12 text-muted-foreground mb-4" />
-        <h1 className="text-2xl font-bold mb-2">Welcome to BarberPro</h1>
-        <p className="text-muted-foreground max-w-md">
-          Your barbershop is being set up. Please wait a moment and refresh the page, 
-          or check your email to complete the verification process.
-        </p>
-      </div>
-    )
+  if (!profile?.barbershop_id) {
+    redirect("/onboarding")
   }
+
+  const barbershop_id = profile.barbershop_id
 
   const today = new Date()
   const startOfDay = new Date(today.setHours(0, 0, 0, 0)).toISOString()
@@ -43,7 +36,7 @@ export default async function AdminDashboard() {
   const { count: todayAppointments } = await supabase
     .from("appointments")
     .select("*", { count: "exact", head: true })
-    .eq("barbershop_id", barbershop.id)
+    .eq("barbershop_id", barbershop_id)
     .gte("start_time", startOfDay)
     .lte("start_time", endOfDay)
 
@@ -51,7 +44,7 @@ export default async function AdminDashboard() {
   const { data: weekAppointments } = await supabase
     .from("appointments")
     .select("total_price")
-    .eq("barbershop_id", barbershop.id)
+    .eq("barbershop_id", barbershop_id)
     .eq("status", "completed")
     .gte("start_time", startOfWeek)
 
@@ -61,13 +54,13 @@ export default async function AdminDashboard() {
   const { count: totalClients } = await supabase
     .from("clients")
     .select("*", { count: "exact", head: true })
-    .eq("barbershop_id", barbershop.id)
+    .eq("barbershop_id", barbershop_id)
 
   // Get active barbers
   const { count: activeBarbers } = await supabase
     .from("barbers")
     .select("*", { count: "exact", head: true })
-    .eq("barbershop_id", barbershop.id)
+    .eq("barbershop_id", barbershop_id)
     .eq("is_active", true)
 
   // Get recent appointments with related data
@@ -79,7 +72,7 @@ export default async function AdminDashboard() {
       client:clients(id, first_name, last_name),
       service:services(id, name, duration_minutes)
     `)
-    .eq("barbershop_id", barbershop.id)
+    .eq("barbershop_id", barbershop_id)
     .order("created_at", { ascending: false })
     .limit(5)
 
@@ -92,7 +85,7 @@ export default async function AdminDashboard() {
       client:clients(id, first_name, last_name),
       service:services(id, name, duration_minutes)
     `)
-    .eq("barbershop_id", barbershop.id)
+    .eq("barbershop_id", barbershop_id)
     .gte("start_time", new Date().toISOString())
     .in("status", ["pending", "confirmed"])
     .order("start_time", { ascending: true })
@@ -141,3 +134,4 @@ export default async function AdminDashboard() {
     </div>
   )
 }
+

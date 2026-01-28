@@ -21,7 +21,7 @@ INSERT INTO public.barbershops (
   currency,
   is_active
 ) VALUES (
-  'user-uuid-to-replace',
+  '1afa489f-16cb-4e0a-a1dd-7accded63f47',
   'My Barbershop',
   'my-barbershop',
   'The best barbershop in town',
