@@ -18,6 +18,9 @@ import {
   LogOut,
   Menu,
   X,
+  MessageCircle,
+  Trophy,
+  FileText,
 } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
@@ -28,6 +31,9 @@ const navigation = [
   { name: "Barbers", href: "/admin/barbers", icon: Users },
   { name: "Services", href: "/admin/services", icon: Briefcase },
   { name: "Clients", href: "/admin/clients", icon: UserCircle },
+  { name: "WhatsApp Bot", href: "/admin/bot", icon: MessageCircle },
+  { name: "Gamification", href: "/admin/gamification", icon: Trophy },
+  { name: "Fiscal", href: "/admin/fiscal", icon: FileText },
   { name: "Settings", href: "/admin/settings", icon: Settings },
 ]
 
@@ -115,12 +121,14 @@ export function AdminSidebar({ barbershopName = "BarberPro", userEmail }: AdminS
       </Button>
 
       {/* Mobile sidebar overlay */}
-      {mobileOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm md:hidden"
-          onClick={() => setMobileOpen(false)}
-        />
-      )}
+      <div
+        className={cn(
+          "fixed inset-0 z-40 bg-background/80 backdrop-blur-sm md:hidden transition-opacity duration-200",
+          mobileOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        )}
+        onClick={() => setMobileOpen(false)}
+        role="presentation"
+      />
 
       {/* Mobile sidebar */}
       <aside
@@ -139,3 +147,4 @@ export function AdminSidebar({ barbershopName = "BarberPro", userEmail }: AdminS
     </>
   )
 }
+
