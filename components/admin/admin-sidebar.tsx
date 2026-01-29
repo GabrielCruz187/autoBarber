@@ -24,17 +24,24 @@ import {
 } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
+import { t } from "@/lib/i18n/useTranslation"
 
 const navigation = [
-  { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
-  { name: "Appointments", href: "/admin/appointments", icon: Calendar },
-  { name: "Barbers", href: "/admin/barbers", icon: Users },
-  { name: "Services", href: "/admin/services", icon: Briefcase },
-  { name: "Clients", href: "/admin/clients", icon: UserCircle },
-  { name: "WhatsApp Bot", href: "/admin/bot", icon: MessageCircle },
-  { name: "Gamification", href: "/admin/gamification", icon: Trophy },
-  { name: "Fiscal", href: "/admin/fiscal", icon: FileText },
-  { name: "Settings", href: "/admin/settings", icon: Settings },
+  { name: t.menu.dashboard, href: "/admin", icon: LayoutDashboard },
+  { name: t.menu.agendamentos, href: "/admin/appointments", icon: Calendar },
+  { name: t.menu.barbeiros, href: "/admin/barbers", icon: Users },
+  { name: t.menu.servicos, href: "/admin/serviços", icon: Briefcase },
+  { name: t.menu.clientes, href: "/admin/clients", icon: UserCircle },
+  { name: t.menu.caixa, href: "/admin/caixa", icon: FileText },
+  { name: t.menu.comandas, href: "/admin/comandas", icon: FileText },
+  { name: t.menu.financeiro, href: "/admin/financeiro", icon: FileText },
+  { name: t.menu.estoque, href: "/admin/estoque", icon: FileText },
+  { name: t.menu.assinaturas, href: "/admin/assinaturas", icon: FileText },
+  { name: t.menu.botWhatsapp, href: "/admin/bot", icon: MessageCircle },
+  { name: t.menu.gamificacao, href: "/admin/gamification", icon: Trophy },
+  { name: t.menu.fiscal, href: "/admin/fiscal", icon: FileText },
+  { name: t.menu.relatorios, href: "/admin/relatorios", icon: FileText },
+  { name: t.menu.configuracoes, href: "/admin/settings", icon: Settings },
 ]
 
 interface AdminSidebarProps {
@@ -50,7 +57,7 @@ export function AdminSidebar({ barbershopName = "BarberPro", userEmail }: AdminS
   const handleSignOut = async () => {
     const supabase = createClient()
     await supabase.auth.signOut()
-    toast.success("Signed out successfully")
+    toast.success(t.common.sair)
     router.push("/auth/login")
     router.refresh()
   }
@@ -147,4 +154,3 @@ export function AdminSidebar({ barbershopName = "BarberPro", userEmail }: AdminS
     </>
   )
 }
-

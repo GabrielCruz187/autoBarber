@@ -1,5 +1,5 @@
 import type { ConversationState } from '../types'
-import { stateManager } from '../state-manager'
+import { stateManager } from '../state-menager'
 import { whatsappClient } from '../client'
 import {
   getDailyRevenue,
