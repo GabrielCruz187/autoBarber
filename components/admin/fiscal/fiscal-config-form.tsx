@@ -1,9 +1,7 @@
 'use client'
 
 import React from "react"
-
 import { useState, useEffect } from 'react'
-import useSWR, { mutate } from 'swr'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -11,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea'
 import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/hooks/use-toast'
+import { mutate } from 'swr'
 import type { FiscalConfig } from '@/lib/fiscal/types'
 
 const states = ['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO']
@@ -27,23 +26,35 @@ const fiscalProviders = [
   { value: 'focus_nfe', label: 'Focus NFe' },
 ]
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json())
-
 export function FiscalConfigForm() {
-  const { data, isLoading, error } = useSWR<{ config: FiscalConfig | null }>(
-    '/api/fiscal/config',
-    fetcher
-  )
-
   const { toast } = useToast()
   const [isSaving, setIsSaving] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [formData, setFormData] = useState<Partial<FiscalConfig>>({})
 
   useEffect(() => {
-    if (data?.config) {
-      setFormData(data.config)
+    const loadConfig = async () => {
+      try {
+        setIsLoading(true)
+        const res = await fetch('/api/fiscal/config')
+        const data = await res.json()
+        if (data.config) {
+          setFormData(data.config)
+        }
+      } catch (error) {
+        console.error('[v0] Error loading config:', error)
+        toast({
+          title: 'Erro',
+          description: 'Erro ao carregar configurações',
+          variant: 'destructive',
+        })
+      } finally {
+        setIsLoading(false)
+      }
     }
-  }, [data])
+
+    loadConfig()
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -62,7 +73,6 @@ export function FiscalConfigForm() {
 
       const result = await response.json()
       setFormData(result.config)
-      mutate('/api/fiscal/config')
 
       toast({
         title: 'Sucesso',
@@ -299,7 +309,7 @@ export function FiscalConfigForm() {
             <Label htmlFor="default_service_code">Código de Serviço Municipal</Label>
             <Input
               id="default_service_code"
-              value={formData.default_nfse_description || ''}
+              value={formData.default_service_code || ''}
               onChange={(e) => setFormData({ ...formData, default_service_code: e.target.value })}
               placeholder="1401"
             />

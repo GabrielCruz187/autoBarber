@@ -1,9 +1,7 @@
 'use client'
 
 import React from "react"
-
-import { useState } from 'react'
-import useSWR, { mutate } from 'swr'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -18,7 +16,6 @@ import { useToast } from '@/hooks/use-toast'
 import { Download, Send, Trash2, Plus } from 'lucide-react'
 import type { FiscalInvoice } from '@/lib/fiscal/types'
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
 const statusConfig = {
   pending: { label: 'Pendente', variant: 'outline' },
@@ -33,18 +30,40 @@ const invoiceTypeConfig = {
 }
 
 export function InvoiceManager() {
-  const { data, isLoading } = useSWR<{ invoices: FiscalInvoice[] }>(
-    '/api/fiscal/invoices',
-    fetcher,
-    { revalidateInterval: 5000 }
-  )
-
   const { toast } = useToast()
+  const [invoicesList, setInvoicesList] = useState<FiscalInvoice[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   const [isCreating, setIsCreating] = useState(false)
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [selectedInvoice, setSelectedInvoice] = useState<FiscalInvoice | null>(null)
   const [showEmitDialog, setShowEmitDialog] = useState(false)
   const [cancelReason, setCancelReason] = useState('')
+  const [data, setData] = useState<{ invoices?: FiscalInvoice[] } | null>(null)
+
+  useEffect(() => {
+    const loadInvoices = async () => {
+      try {
+        setIsLoading(true)
+        const res = await fetch('/api/fiscal/invoices')
+        const data = await res.json()
+        setData(data)
+        setInvoicesList(data.invoices || [])
+      } catch (error) {
+        console.error('[v0] Error loading invoices:', error)
+        toast({
+          title: 'Erro',
+          description: 'Erro ao carregar notas',
+          variant: 'destructive',
+        })
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadInvoices()
+    const interval = setInterval(loadInvoices, 5000)
+    return () => clearInterval(interval)
+  }, [])
 
   const [newInvoice, setNewInvoice] = useState({
     invoice_type: 'nfse',
@@ -84,28 +103,15 @@ export function InvoiceManager() {
 
       toast({
         title: 'Sucesso',
-        description: 'Nota fiscal criada com sucesso',
-      })
-    } catch (err) {
-      toast({
-        title: 'Erro',
-        description: err instanceof Error ? err.message : 'Erro ao criar nota',
-        variant: 'destructive',
-      })
-    } finally {
-      setIsCreating(false)
-    }
-  }
-
-  const handleEmitInvoice = async (invoiceId: string) => {
-    try {
-      const response = await fetch(`/api/fiscal/invoices/${invoiceId}/emit`, {
-        method: 'POST',
+        description: 'Nota criada com sucesso',
       })
 
-      if (!response.ok) throw new Error('Failed to emit invoice')
-
-      mutate('/api/fiscal/invoices')
+      setShowCreateDialog(false)
+      
+      // Reload invoices
+      const res = await fetch('/api/fiscal/invoices')
+      const data = await res.json()
+      setInvoicesList(data.invoices || [])
       setShowEmitDialog(false)
 
       toast({
@@ -118,6 +124,8 @@ export function InvoiceManager() {
         description: err instanceof Error ? err.message : 'Erro ao emitir nota',
         variant: 'destructive',
       })
+    } finally {
+      setIsCreating(false)
     }
   }
 
@@ -156,7 +164,30 @@ export function InvoiceManager() {
     }
   }
 
-  const invoices = data?.invoices || []
+  const handleEmitInvoice = async (invoiceId: string) => {
+    try {
+      const response = await fetch(`/api/fiscal/invoices/${invoiceId}/emit`, {
+        method: 'POST',
+      })
+
+      if (!response.ok) throw new Error('Failed to emit invoice')
+
+      mutate('/api/fiscal/invoices')
+
+      toast({
+        title: 'Sucesso',
+        description: 'Nota fiscal emitida',
+      })
+    } catch (err) {
+      toast({
+        title: 'Erro',
+        description: err instanceof Error ? err.message : 'Erro ao emitir nota',
+        variant: 'destructive',
+      })
+    }
+  }
+
+  const invoices = invoicesList
 
   return (
     <div className="space-y-6">

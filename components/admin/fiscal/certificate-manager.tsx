@@ -1,9 +1,7 @@
 'use client'
 
 import React from "react"
-
-import { useState } from 'react'
-import useSWR, { mutate } from 'swr'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -15,29 +13,51 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { useToast } from '@/hooks/use-toast'
 import { AlertCircle, Trash2, CheckCircle } from 'lucide-react'
 import type { FiscalCertificate, FiscalConfig } from '@/lib/fiscal/types'
-
-const fetcher = (url: string) => fetch(url).then((res) => res.json())
+import { mutate } from 'swr'
+import { config } from '@/lib/fiscal/config' // Import or declare the variable before using it
 
 export function CertificateManager() {
-  const { data: certificatesData, isLoading: certsLoading } = useSWR<{ certificates: FiscalCertificate[] }>(
-    '/api/fiscal/certificates',
-    fetcher
-  )
-
-  const { data: configData } = useSWR<{ config: FiscalConfig | null }>(
-    '/api/fiscal/config',
-    fetcher
-  )
-
   const { toast } = useToast()
   const [isUploading, setIsUploading] = useState(false)
   const [certificateFile, setCertificateFile] = useState<File | null>(null)
   const [password, setPassword] = useState('')
+  const [certificates, setCertificates] = useState<FiscalCertificate[]>([])
+  const [configData, setConfigData] = useState<{ config: FiscalConfig | null }>({ config: null })
+  const [certsLoading, setCertsLoading] = useState(true)
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setCertsLoading(true)
+        const [certsRes, configRes] = await Promise.all([
+          fetch('/api/fiscal/certificates'),
+          fetch('/api/fiscal/config'),
+        ])
+        
+        const certsData = await certsRes.json()
+        const configData = await configRes.json()
+        
+        setCertificates(certsData.certificates || [])
+        setConfigData({ config: configData.config || null })
+      } catch (error) {
+        console.error('[v0] Error loading data:', error)
+        toast({
+          title: 'Erro',
+          description: 'Erro ao carregar dados',
+          variant: 'destructive',
+        })
+      } finally {
+        setCertsLoading(false)
+      }
+    }
+
+    loadData()
+  }, [])
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!certificateFile || !password || !configData?.config?.id) {
+    if (!certificateFile || !password || !configData.config?.id) {
       toast({
         title: 'Erro',
         description: 'Preencha todos os campos obrigatórios',
@@ -50,22 +70,29 @@ export function CertificateManager() {
 
     try {
       const formData = new FormData()
-      formData.append('certificate', certificateFile)
+      formData.append('file', certificateFile)
       formData.append('password', password)
-      formData.append('fiscal_config_id', configData.config.id)
+      formData.append('config_id', config?.id || '')
 
       const response = await fetch('/api/fiscal/certificates', {
         method: 'POST',
         body: formData,
       })
 
-      if (!response.ok) {
-        throw new Error('Failed to upload certificate')
-      }
+      if (!response.ok) throw new Error('Upload failed')
+
+      toast({
+        title: 'Sucesso',
+        description: 'Certificado enviado com sucesso',
+      })
 
       setCertificateFile(null)
       setPassword('')
-      mutate('/api/fiscal/certificates')
+      
+      // Reload certificates
+      const res = await fetch('/api/fiscal/certificates')
+      const data = await res.json()
+      setCertificates(data.certificates || [])
 
       toast({
         title: 'Sucesso',
@@ -82,8 +109,6 @@ export function CertificateManager() {
     }
   }
 
-  const certificates = certificatesData?.certificates || []
-
   return (
     <div className="space-y-6">
       <Card>
@@ -92,7 +117,7 @@ export function CertificateManager() {
           <CardDescription>Faça upload do seu certificado A1 (.pfx)</CardDescription>
         </CardHeader>
         <CardContent>
-          {!configData?.config?.id ? (
+          {!configData.config?.id ? (
             <Alert>
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>Configuração Necessária</AlertTitle>

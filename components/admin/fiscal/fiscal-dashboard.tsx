@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import useSWR from 'swr'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -9,8 +8,6 @@ import { Badge } from '@/components/ui/badge'
 import { Spinner } from '@/components/ui/spinner'
 import { AlertCircle, CheckCircle, Clock, XCircle } from 'lucide-react'
 import type { FiscalDashboardStats, FiscalInvoice } from '@/lib/fiscal/types'
-
-const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
 const statusConfig = {
   pending: { label: 'Pendente', variant: 'outline', icon: Clock },
@@ -25,11 +22,29 @@ const invoiceTypeConfig = {
 }
 
 export function FiscalDashboard() {
-  const { data, isLoading, error } = useSWR<{ stats: FiscalDashboardStats }>(
-    '/api/fiscal/dashboard',
-    fetcher,
-    { revalidateOnFocus: true }
-  )
+  const [data, setData] = useState<{ stats: FiscalDashboardStats } | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<Error | null>(null)
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setIsLoading(true)
+        const res = await fetch('/api/fiscal/dashboard')
+        if (!res.ok) throw new Error('Failed to load data')
+        const result = await res.json()
+        setData(result)
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error('Unknown error'))
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadData()
+    const interval = setInterval(loadData, 5000)
+    return () => clearInterval(interval)
+  }, [])
 
   if (isLoading) {
     return (
