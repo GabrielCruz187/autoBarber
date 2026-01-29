@@ -30,7 +30,7 @@ const navigation = [
   { name: t.menu.dashboard, href: "/admin", icon: LayoutDashboard },
   { name: t.menu.agendamentos, href: "/admin/appointments", icon: Calendar },
   { name: t.menu.barbeiros, href: "/admin/barbers", icon: Users },
-  { name: t.menu.servicos, href: "/admin/serviços", icon: Briefcase },
+  { name: t.menu.servicos, href: "/admin/services", icon: Briefcase },
   { name: t.menu.clientes, href: "/admin/clients", icon: UserCircle },
   { name: t.menu.caixa, href: "/admin/caixa", icon: FileText },
   { name: t.menu.comandas, href: "/admin/comandas", icon: FileText },
@@ -71,8 +71,8 @@ export function AdminSidebar({ barbershopName = "BarberPro", userEmail }: AdminS
         <span className="font-semibold text-foreground">{barbershopName}</span>
       </div>
       
-      <ScrollArea className="flex-1 px-3 py-4">
-        <nav className="space-y-1">
+      <ScrollArea className="flex-1 overflow-hidden">
+        <nav className="space-y-1 px-3 py-4 pr-4">
           {navigation.map((item) => {
             const isActive = pathname === item.href || 
               (item.href !== "/admin" && pathname.startsWith(item.href))
@@ -82,14 +82,14 @@ export function AdminSidebar({ barbershopName = "BarberPro", userEmail }: AdminS
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
                 className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors whitespace-nowrap",
                   isActive
                     ? "bg-primary text-primary-foreground"
                     : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                 )}
               >
-                <item.icon className="h-4 w-4" />
-                {item.name}
+                <item.icon className="h-4 w-4 flex-shrink-0" />
+                <span className="truncate">{item.name}</span>
               </Link>
             )
           })}
@@ -117,25 +117,22 @@ export function AdminSidebar({ barbershopName = "BarberPro", userEmail }: AdminS
 
   return (
     <>
-      {/* Mobile menu button */}
-      <Button
-        variant="ghost"
-        size="icon"
-        className="fixed top-4 left-4 z-50 md:hidden"
-        onClick={() => setMobileOpen(!mobileOpen)}
-      >
-        {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-      </Button>
+      {/* Desktop sidebar - sempre visível */}
+      <aside className="hidden md:flex md:fixed md:inset-y-0 md:left-0 md:w-64 md:flex-col bg-card border-r">
+        <SidebarContent />
+      </aside>
 
-      {/* Mobile sidebar overlay */}
-      <div
-        className={cn(
-          "fixed inset-0 z-40 bg-background/80 backdrop-blur-sm md:hidden transition-opacity duration-200",
-          mobileOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+      {/* Mobile menu button */}
+      <button
+        onClick={() => setMobileOpen(!mobileOpen)}
+        className="fixed right-4 top-4 z-40 md:hidden"
+      >
+        {mobileOpen ? (
+          <X className="h-6 w-6" />
+        ) : (
+          <Menu className="h-6 w-6" />
         )}
-        onClick={() => setMobileOpen(false)}
-        role="presentation"
-      />
+      </button>
 
       {/* Mobile sidebar */}
       <aside
@@ -147,10 +144,13 @@ export function AdminSidebar({ barbershopName = "BarberPro", userEmail }: AdminS
         <SidebarContent />
       </aside>
 
-      {/* Desktop sidebar */}
-      <aside className="hidden md:fixed md:inset-y-0 md:left-0 md:flex md:w-64 md:flex-col bg-card border-r">
-        <SidebarContent />
-      </aside>
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 md:hidden"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
     </>
   )
 }

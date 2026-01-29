@@ -1,12 +1,15 @@
+import { AlertDescription } from "@/components/ui/alert"
+import { Alert } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { t } from "@/lib/i18n/useTranslation"
-import { Plus, AlertTriangle } from "lucide-react"
+import { AlertTriangle } from "lucide-react"
+import { Plus } from "lucide-react" // Added import for Plus
+import { NovoProdutoDialog } from "@/components/admin/estoque/novo-produto-dialog"
 
 export default async function EstoquePage() {
   const supabase = await createClient()
@@ -56,8 +59,11 @@ export default async function EstoquePage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">{t.menu.estoque}</h1>
-          <p className="text-muted-foreground">Controle de produtos e estoque</p>
+          <p className="text-muted-foreground">Controle de estoque de produtos</p>
         </div>
+        <NovoProdutoDialog />
+      </div>
+      <div className="flex justify-end">
         <Button>
           <Plus className="mr-2 h-4 w-4" />
           {t.estoque.novoItem}

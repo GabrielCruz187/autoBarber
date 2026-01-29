@@ -140,13 +140,13 @@ export default async function AdminLayout({
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex h-screen bg-background overflow-hidden">
       <AdminSidebar 
         barbershopName={barbershop?.name || "BarberPro"} 
         userEmail={user.email}
       />
-      <main className="md:pl-64">
-        <div className="p-4 md:p-8">
+      <main className="flex-1 overflow-y-auto overflow-x-hidden md:ml-64">
+        <div className="w-full p-4 md:p-8">
           {children}
         </div>
       </main>

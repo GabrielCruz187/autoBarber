@@ -1,10 +1,11 @@
+import { Button } from "@/components/ui/button"
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { t } from "@/lib/i18n/useTranslation"
+import { NovaComandaDialog } from "@/components/admin/comandas/nova-comanda-dialog"
 import { Plus } from "lucide-react"
 
 export default async function ComandasPage() {
@@ -24,6 +25,11 @@ export default async function ComandasPage() {
   if (!profile?.barbershop_id) {
     redirect("/onboarding")
   }
+
+  const { data: clientes } = await supabase
+    .from("clients")
+    .select("*")
+    .eq("barbershop_id", profile.barbershop_id)
 
   const { data: comandas } = await supabase
     .from("comandas")
@@ -48,10 +54,7 @@ export default async function ComandasPage() {
           <h1 className="text-3xl font-bold">{t.menu.comandas}</h1>
           <p className="text-muted-foreground">Controle de comandas vinculadas aos clientes</p>
         </div>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          {t.comandas.novaComanda}
-        </Button>
+        <NovaComandaDialog clientes={clientes || []} />
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">

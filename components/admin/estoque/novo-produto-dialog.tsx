@@ -11,49 +11,48 @@ import { t } from '@/lib/i18n/useTranslation'
 import { Plus } from 'lucide-react'
 import { toast } from 'sonner'
 
-interface NovoPlanoDialogProps {
-  onPlanoCriado: () => void;
-}
-
-export function NovoPlanoDialog({ onPlanoCriado }: NovoPlanoDialogProps) {
+export function NovoProdutoDialog() {
   const [open, setOpen] = useState(false)
   const [nome, setNome] = useState('')
-  const [descricao, setDescricao] = useState('')
+  const [categoria, setCategoria] = useState('geral')
   const [preco, setPreco] = useState('')
-  const [frequencia, setFrequencia] = useState('mensal')
+  const [quantidade, setQuantidade] = useState('')
+  const [quantidadeMinima, setQuantidadeMinima] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!nome || !preco) {
+    if (!nome || !preco || !quantidade) {
       toast.error(t.common.erro, { description: 'Preencha todos os campos obrigatórios' })
       return
     }
 
     setIsLoading(true)
     try {
-      const response = await fetch('/api/admin/assinaturas/planos', {
+      const response = await fetch('/api/admin/estoque/produtos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           nome,
-          descricao: descricao || null,
+          categoria: categoria || 'geral',
           preco: parseFloat(preco),
-          frequencia,
+          quantidade: parseInt(quantidade),
+          quantidade_minima: parseInt(quantidadeMinima) || 10,
         }),
       })
 
-      if (!response.ok) throw new Error('Erro ao criar plano')
+      if (!response.ok) throw new Error('Erro ao adicionar produto')
 
-      toast.success(t.common.sucesso, { description: 'Plano de assinatura criado com sucesso!' })
+      toast.success(t.common.sucesso, { description: 'Produto adicionado com sucesso!' })
       setOpen(false)
       setNome('')
-      setDescricao('')
+      setCategoria('geral')
       setPreco('')
-      setFrequencia('mensal')
+      setQuantidade('')
+      setQuantidadeMinima('')
     } catch (error) {
-      toast.error(t.common.erro, { description: 'Erro ao criar plano de assinatura' })
+      toast.error(t.common.erro, { description: 'Erro ao adicionar produto' })
     } finally {
       setIsLoading(false)
     }
@@ -64,20 +63,20 @@ export function NovoPlanoDialog({ onPlanoCriado }: NovoPlanoDialogProps) {
       <DialogTrigger asChild>
         <Button>
           <Plus className="mr-2 h-4 w-4" />
-          {t.assinaturas.criarPlano}
+          {t.estoque.adicionarProduto}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>{t.assinaturas.criarPlano}</DialogTitle>
-          <DialogDescription>Crie um novo plano de assinatura</DialogDescription>
+          <DialogTitle>{t.estoque.adicionarProduto}</DialogTitle>
+          <DialogDescription>Adicione um novo produto ao estoque</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="nome">{t.assinaturas.nomePlano}</Label>
+            <Label htmlFor="nome">{t.estoque.nomeProduto}</Label>
             <Input
               id="nome"
-              placeholder="Ex: Premium Plus"
+              placeholder="Nome do produto"
               value={nome}
               onChange={(e) => setNome(e.target.value)}
               required
@@ -85,18 +84,23 @@ export function NovoPlanoDialog({ onPlanoCriado }: NovoPlanoDialogProps) {
           </div>
 
           <div>
-            <Label htmlFor="descricao">{t.assinaturas.descricaoPlano}</Label>
-            <Input
-              id="descricao"
-              placeholder="Descrição do plano"
-              value={descricao}
-              onChange={(e) => setDescricao(e.target.value)}
-            />
+            <Label htmlFor="categoria">{t.estoque.categoria}</Label>
+            <select
+              id="categoria"
+              value={categoria}
+              onChange={(e) => setCategoria(e.target.value)}
+              className="w-full rounded-md border border-input bg-background px-3 py-2"
+            >
+              <option value="geral">Geral</option>
+              <option value="higiene">Higiene</option>
+              <option value="ferramentas">Ferramentas</option>
+              <option value="outros">Outros</option>
+            </select>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="preco">{t.assinaturas.preco}</Label>
+              <Label htmlFor="preco">{t.estoque.preco}</Label>
               <Input
                 id="preco"
                 placeholder="0.00"
@@ -108,18 +112,27 @@ export function NovoPlanoDialog({ onPlanoCriado }: NovoPlanoDialogProps) {
               />
             </div>
             <div>
-              <Label htmlFor="frequencia">{t.assinaturas.frequencia}</Label>
-              <select
-                id="frequencia"
-                value={frequencia}
-                onChange={(e) => setFrequencia(e.target.value)}
-                className="w-full rounded-md border border-input bg-background px-3 py-2"
-              >
-                <option value="mensal">{t.assinaturas.mensal}</option>
-                <option value="trimestral">{t.assinaturas.trimestral}</option>
-                <option value="anual">{t.assinaturas.anual}</option>
-              </select>
+              <Label htmlFor="quantidade">{t.estoque.quantidade}</Label>
+              <Input
+                id="quantidade"
+                placeholder="0"
+                type="number"
+                value={quantidade}
+                onChange={(e) => setQuantidade(e.target.value)}
+                required
+              />
             </div>
+          </div>
+
+          <div>
+            <Label htmlFor="quantidadeMinima">{t.estoque.quantidadeMinima}</Label>
+            <Input
+              id="quantidadeMinima"
+              placeholder="10"
+              type="number"
+              value={quantidadeMinima}
+              onChange={(e) => setQuantidadeMinima(e.target.value)}
+            />
           </div>
 
           <div className="flex gap-3 pt-2">
@@ -132,7 +145,7 @@ export function NovoPlanoDialog({ onPlanoCriado }: NovoPlanoDialogProps) {
               {t.common.cancelar}
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'Criando...' : t.common.criar}
+              {isLoading ? 'Adicionando...' : t.common.criar}
             </Button>
           </div>
         </form>
@@ -140,4 +153,3 @@ export function NovoPlanoDialog({ onPlanoCriado }: NovoPlanoDialogProps) {
     </Dialog>
   )
 }
-
