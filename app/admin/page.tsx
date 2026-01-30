@@ -3,8 +3,10 @@ import { createClient } from "@/lib/supabase/server"
 import { StatsCard } from "@/components/admin/stats-card"
 import { RecentAppointments } from "@/components/admin/recent-appointments"
 import { UpcomingAppointments } from "@/components/admin/upcoming-appointments"
+import { PublicPageLink } from "@/components/admin/public-page-link"
 import { Calendar, DollarSign, Users, Scissors } from "lucide-react"
 import type { Appointment } from "@/lib/types"
+import { getToday } from "@/lib/utils" // Declare the getToday variable
 
 export default async function AdminDashboard() {
   const supabase = await createClient()
@@ -27,10 +29,18 @@ export default async function AdminDashboard() {
 
   const barbershop_id = profile.barbershop_id
 
-  const today = new Date()
-  const startOfDay = new Date(today.setHours(0, 0, 0, 0)).toISOString()
-  const endOfDay = new Date(today.setHours(23, 59, 59, 999)).toISOString()
-  const startOfWeek = new Date(today.setDate(today.getDate() - today.getDay())).toISOString()
+  // Get barbershop data including slug
+  const { data: barbershop } = await supabase
+    .from("barbershops")
+    .select("name, slug")
+    .eq("id", barbershop_id)
+    .single()
+
+  const { startOfDay, endOfDay } = getToday()
+  
+  // Calculate start of week
+  const weekDate = new Date()
+  const startOfWeek = new Date(weekDate.setDate(weekDate.getDate() - weekDate.getDay())).toISOString()
 
   // Get today's appointments count
   const { count: todayAppointments } = await supabase
@@ -96,9 +106,13 @@ export default async function AdminDashboard() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-muted-foreground">
-          Welcome back! {"Here's"} an overview of your barbershop.
+          Bem-vindo de volta! Aqui está um resumo de sua barbearia.
         </p>
       </div>
+
+      {barbershop?.slug && (
+        <PublicPageLink slug={barbershop.slug} barbershopName={barbershop.name || "Sua Barbearia"} />
+      )}
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatsCard
@@ -134,4 +148,3 @@ export default async function AdminDashboard() {
     </div>
   )
 }
-
