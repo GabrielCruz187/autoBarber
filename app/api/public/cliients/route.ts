@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 
-export async function GET(request: NextRequest) {
-  console.log("[v0] GET /api/public/clients - Route exists and is accessible")
+export async function GET() {
   return NextResponse.json({ message: "API de clientes públicos ativa" }, { status: 200 })
 }
 
