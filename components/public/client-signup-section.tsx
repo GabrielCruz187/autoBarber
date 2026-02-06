@@ -128,7 +128,7 @@ export function ClientSignupSection({ barbershop }: ClientSignupSectionProps) {
                   </Button>
 
                   <p className="text-xs text-muted-foreground">
-                    Fale com nosso bot para escolher data, hora e serviço
+                    Fale com nosso bot para escolher data, hora e serviço.
                   </p>
                 </div>
               )}
