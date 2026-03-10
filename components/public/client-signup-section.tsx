@@ -29,7 +29,7 @@ export function ClientSignupSection({ barbershop }: ClientSignupSectionProps) {
 
     setIsLoading(true)
     try {
-      const response = await fetch('/api/clients', {
+      const response = await fetch('/api/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -139,4 +139,5 @@ export function ClientSignupSection({ barbershop }: ClientSignupSectionProps) {
     </section>
   )
 }
+
 
