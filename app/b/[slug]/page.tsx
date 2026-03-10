@@ -1,9 +1,6 @@
 import { notFound } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
-import { BarbershopHero } from "@/components/public/barbershop-hero"
-import { ServicesSection } from "@/components/public/services-section"
-import { BarbersSection } from "@/components/public/barbers-section"
-import { ClientSignupSection } from "@/components/public/client-signup-section"
+import { BookingFlow } from "@/components/public/booking/booking-flow"
 
 interface BarbershopPageProps {
   params: Promise<{
@@ -15,7 +12,7 @@ export default async function BarbershopPage({ params }: BarbershopPageProps) {
   const { slug } = await params
   const supabase = await createClient()
 
-  // Buscar barbearia pelo slug - sem autenticação necessária
+  // Buscar barbearia pelo slug
   const { data: barbershop, error } = await supabase
     .from("barbershops")
     .select("*")
@@ -45,10 +42,12 @@ export default async function BarbershopPage({ params }: BarbershopPageProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      <BarbershopHero barbershop={barbershop} />
-      <ServicesSection services={services || []} />
-      <BarbersSection barbers={barbers || []} />
-      <ClientSignupSection barbershop={barbershop} />
+      <BookingFlow
+        barbershopId={barbershop.id}
+        services={services || []}
+        barbers={barbers || []}
+        barbershopName={barbershop.name}
+      />
     </div>
   )
 }
