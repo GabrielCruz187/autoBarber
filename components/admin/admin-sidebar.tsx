@@ -21,6 +21,7 @@ import {
   MessageCircle,
   Trophy,
   FileText,
+  ChevronDown,
 } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
@@ -36,12 +37,22 @@ const navigation = [
   { name: t.menu.comandas, href: "/admin/comandas", icon: FileText },
   { name: t.menu.financeiro, href: "/admin/financeiro", icon: FileText },
   { name: t.menu.estoque, href: "/admin/estoque", icon: FileText },
-  { name: t.menu.assinaturas, href: "/admin/assinaturas", icon: FileText },
   { name: t.menu.botWhatsapp, href: "/admin/bot", icon: MessageCircle },
   { name: t.menu.gamificacao, href: "/admin/gamification", icon: Trophy },
   { name: t.menu.fiscal, href: "/admin/fiscal", icon: FileText },
   { name: t.menu.relatorios, href: "/admin/relatorios", icon: FileText },
   { name: t.menu.configuracoes, href: "/admin/settings", icon: Settings },
+]
+
+const assinaturasSubmenu = [
+  { name: "Cliente pré aprovado", href: "/admin/assinaturas/pre-aprovado" },
+  { name: "Cliente pré cancelado", href: "/admin/assinaturas/pre-cancelado" },
+  { name: "Calendário de assinaturas", href: "/admin/assinaturas/calendario" },
+  { name: "Alterar assinaturas", href: "/admin/assinaturas/alterar" },
+  { name: "Criar planos", href: "/admin/assinaturas/criar-planos" },
+  { name: "Exibição de planos", href: "/admin/assinaturas/exibicao-planos" },
+  { name: "Listagem de plano", href: "/admin/assinaturas/listagem-planos" },
+  { name: "Contratos ativos", href: "/admin/assinaturas/contratos-ativos" },
 ]
 
 interface AdminSidebarProps {
@@ -53,6 +64,7 @@ export function AdminSidebar({ barbershopName = "BarberPro", userEmail }: AdminS
   const pathname = usePathname()
   const router = useRouter()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [assinaturasOpen, setAssinaturasOpen] = useState(pathname.startsWith("/admin/assinaturas"))
 
   const handleSignOut = async () => {
     const supabase = createClient()
@@ -93,6 +105,51 @@ export function AdminSidebar({ barbershopName = "BarberPro", userEmail }: AdminS
               </Link>
             )
           })}
+
+          {/* Menu Expansível de Assinaturas */}
+          <div className="mt-4 space-y-1">
+            <button
+              onClick={() => setAssinaturasOpen(!assinaturasOpen)}
+              className={cn(
+                "w-full flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                assinaturasOpen
+                  ? "bg-accent text-accent-foreground"
+                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+              )}
+            >
+              <FileText className="h-4 w-4 flex-shrink-0" />
+              <span className="truncate flex-1 text-left">Assinaturas</span>
+              <ChevronDown 
+                className={cn(
+                  "h-4 w-4 transition-transform flex-shrink-0",
+                  assinaturasOpen && "rotate-180"
+                )}
+              />
+            </button>
+
+            {assinaturasOpen && (
+              <div className="space-y-1 pl-6">
+                {assinaturasSubmenu.map((item) => {
+                  const isActive = pathname === item.href
+                  return (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      onClick={() => setMobileOpen(false)}
+                      className={cn(
+                        "flex items-center gap-3 rounded-lg px-3 py-2 text-xs transition-colors whitespace-nowrap",
+                        isActive
+                          ? "bg-primary text-primary-foreground"
+                          : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                      )}
+                    >
+                      <span className="truncate">{item.name}</span>
+                    </Link>
+                  )
+                })}
+              </div>
+            )}
+          </div>
         </nav>
       </ScrollArea>
 

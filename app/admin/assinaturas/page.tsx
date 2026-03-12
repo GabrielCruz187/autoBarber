@@ -1,143 +1,132 @@
-'use client'
+import { redirect } from "next/navigation"
+import { createClient } from "@/lib/supabase/server"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Badge } from "@/components/ui/badge"
+import { t } from "@/lib/i18n/useTranslation"
+import { NovoPlanoDialog } from "@/components/admin/assinaturas/novo-plano-dialog"
 
-import React from "react"
+export default async function AssinaturasPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { t } from '@/lib/i18n/useTranslation'
-import { Plus } from 'lucide-react'
-import { toast } from 'sonner'
-
-interface NovoPlanoDialogProps {
-  onPlanoCriado: () => void;
-}
-
-export function NovoPlanoDialog({ onPlanoCriado }: NovoPlanoDialogProps) {
-  const [open, setOpen] = useState(false)
-  const [nome, setNome] = useState('')
-  const [descricao, setDescricao] = useState('')
-  const [preco, setPreco] = useState('')
-  const [frequencia, setFrequencia] = useState('mensal')
-  const [isLoading, setIsLoading] = useState(false)
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (!nome || !preco) {
-      toast.error(t.common.erro, { description: 'Preencha todos os campos obrigatórios' })
-      return
-    }
-
-    setIsLoading(true)
-    try {
-      const response = await fetch('/api/admin/assinaturas/planos', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          nome,
-          descricao: descricao || null,
-          preco: parseFloat(preco),
-          frequencia,
-        }),
-      })
-
-      if (!response.ok) throw new Error('Erro ao criar plano')
-
-      toast.success(t.common.sucesso, { description: 'Plano de assinatura criado com sucesso!' })
-      setOpen(false)
-      setNome('')
-      setDescricao('')
-      setPreco('')
-      setFrequencia('mensal')
-    } catch (error) {
-      toast.error(t.common.erro, { description: 'Erro ao criar plano de assinatura' })
-    } finally {
-      setIsLoading(false)
-    }
+  if (!user) {
+    redirect("/auth/login")
   }
 
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("barbershop_id")
+    .eq("id", user.id)
+    .single()
+
+  const { data: planos } = await supabase
+    .from("planos_assinatura")
+    .select("*")
+    .eq("barbershop_id", profile.barbershop_id)
+    .order("created_at", { ascending: false })
+
+  const { data: assinantes } = await supabase
+    .from("assinaturas_clientes")
+    .select("*")
+    .eq("barbershop_id", profile.barbershop_id)
+    .order("created_at", { ascending: false })
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          {t.assinaturas.criarPlano}
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>{t.assinaturas.criarPlano}</DialogTitle>
-          <DialogDescription>Crie um novo plano de assinatura</DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="nome">{t.assinaturas.nomePlano}</Label>
-            <Input
-              id="nome"
-              placeholder="Ex: Premium Plus"
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
-              required
-            />
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold">{t.menu.assinaturas}</h1>
+        <p className="text-muted-foreground">Gerencie planos de assinatura e clientes assinantes</p>
+      </div>
+
+      <Tabs defaultValue="planos" className="w-full">
+        <TabsList>
+          <TabsTrigger value="planos">{t.assinaturas.planos}</TabsTrigger>
+          <TabsTrigger value="clientes">{t.assinaturas.clientes}</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="planos" className="space-y-4">
+          <div className="flex justify-end mb-4">
+            <NovoPlanoDialog />
+          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>{t.assinaturas.planos}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {planos && planos.length > 0 ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{t.assinaturas.nomePlano}</TableHead>
+                      <TableHead>{t.assinaturas.preco}</TableHead>
+                      <TableHead>{t.assinaturas.frequencia}</TableHead>
+                      <TableHead>{t.assinaturas.status}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {planos.map((plano: any) => (
+                      <TableRow key={plano.id}>
+                        <TableCell>{plano.nome}</TableCell>
+                        <TableCell>R$ {plano.preco.toFixed(2)}</TableCell>
+                        <TableCell className="capitalize">{plano.frequencia}</TableCell>
+                        <TableCell>
+                          <Badge variant={plano.ativo ? "default" : "secondary"}>
+                            {plano.ativo ? t.assinaturas.ativo : t.assinaturas.inativo}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : (
+                <p className="text-muted-foreground">Nenhum plano criado ainda</p>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="clientes" className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-3">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">{t.assinaturas.assinantesAtivos}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">0</div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">{t.assinaturas.receita}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">R$ 0,00</div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Taxa de Cancelamento</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">0%</div>
+              </CardContent>
+            </Card>
           </div>
 
-          <div>
-            <Label htmlFor="descricao">{t.assinaturas.descricaoPlano}</Label>
-            <Input
-              id="descricao"
-              placeholder="Descrição do plano"
-              value={descricao}
-              onChange={(e) => setDescricao(e.target.value)}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="preco">{t.assinaturas.preco}</Label>
-              <Input
-                id="preco"
-                placeholder="0.00"
-                type="number"
-                step="0.01"
-                value={preco}
-                onChange={(e) => setPreco(e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="frequencia">{t.assinaturas.frequencia}</Label>
-              <select
-                id="frequencia"
-                value={frequencia}
-                onChange={(e) => setFrequencia(e.target.value)}
-                className="w-full rounded-md border border-input bg-background px-3 py-2"
-              >
-                <option value="mensal">{t.assinaturas.mensal}</option>
-                <option value="trimestral">{t.assinaturas.trimestral}</option>
-                <option value="anual">{t.assinaturas.anual}</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="flex gap-3 pt-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setOpen(false)}
-              disabled={isLoading}
-            >
-              {t.common.cancelar}
-            </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'Criando...' : t.common.criar}
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+          <Card>
+            <CardHeader>
+              <CardTitle>{t.assinaturas.clientes}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">Nenhum cliente com assinatura ativa</p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
   )
 }
-
