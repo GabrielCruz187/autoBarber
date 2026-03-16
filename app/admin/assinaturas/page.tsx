@@ -81,7 +81,7 @@ export default async function AssinaturasPage() {
                   </TableBody>
                 </Table>
               ) : (
-                <p className="text-muted-foreground">Nenhum plano criado ainda</p>
+                <p className="text-muted-foreground">Nenhum plano criado aindaa</p>
               )}
             </CardContent>
           </Card>
