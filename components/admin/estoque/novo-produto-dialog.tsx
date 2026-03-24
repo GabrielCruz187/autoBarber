@@ -30,6 +30,8 @@ export function NovoProdutoDialog() {
 
     setIsLoading(true)
     try {
+      console.log("[v0] Iniciando criação de produto:", { nome, categoria, preco, quantidade })
+      
       const response = await fetch('/api/admin/estoque/produtos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -42,8 +44,17 @@ export function NovoProdutoDialog() {
         }),
       })
 
-      if (!response.ok) throw new Error('Erro ao adicionar produto')
+      console.log("[v0] Response status:", response.status)
+      
+      if (!response.ok) {
+        const errorData = await response.json()
+        console.log("[v0] Erro da API:", errorData)
+        throw new Error(errorData.error || 'Erro ao adicionar produto')
+      }
 
+      const data = await response.json()
+      console.log("[v0] Produto criado com sucesso:", data)
+      
       toast.success(t.common.sucesso, { description: 'Produto adicionado com sucesso!' })
       setOpen(false)
       setNome('')
@@ -52,7 +63,8 @@ export function NovoProdutoDialog() {
       setQuantidade('')
       setQuantidadeMinima('')
     } catch (error) {
-      toast.error(t.common.erro, { description: 'Erro ao adicionar produto' })
+      console.error("[v0] Erro ao adicionar produto:", error)
+      toast.error(t.common.erro, { description: error instanceof Error ? error.message : 'Erro ao adicionar produto' })
     } finally {
       setIsLoading(false)
     }

@@ -66,8 +66,9 @@ export async function POST(request: NextRequest) {
         barbershop_id: profile.barbershop_id,
         nome,
         categoria: categoria || "geral",
-        preco: parseFloat(preco),
-        quantidade: parseInt(quantidade),
+        preco_custo: parseFloat(preco),
+        preco_venda: parseFloat(preco),
+        quantidade_atual: parseInt(quantidade),
         quantidade_minima: parseInt(quantidade_minima) || 10,
         ativo: true,
       })
