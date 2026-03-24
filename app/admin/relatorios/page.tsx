@@ -1,14 +1,10 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { t } from "@/lib/i18n/useTranslation"
-import { Plus, AlertTriangle } from "lucide-react"
 
-export default async function EstoquePage() {
+export default async function RelatoriosPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -26,169 +22,65 @@ export default async function EstoquePage() {
     redirect("/onboarding")
   }
 
-  const { data: produtos } = await supabase
-    .from("produtos")
-    .select("*")
-    .eq("barbershop_id", profile.barbershop_id)
-    .eq("ativo", true)
-    .order("nome")
-
-  const { data: movimentacoes } = await supabase
-    .from("movimentacoes_estoque")
-    .select("*")
-    .eq("barbershop_id", profile.barbershop_id)
-    .order("created_at", { ascending: false })
-    .limit(10)
-
-  const produtosBaixoEstoque = produtos?.filter(p => p.quantidade_atual <= p.quantidade_minima) || []
-  const totalProdutos = produtos?.length || 0
-  const valorTotalEstoque = produtos?.reduce((sum, p) => sum + (p.quantidade_atual * p.preco_custo), 0) || 0
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value)
-  }
-
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">{t.menu.estoque}</h1>
-          <p className="text-muted-foreground">Controle de produtos e estoque</p>
-        </div>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          {t.estoque.novoItem}
-        </Button>
+      <div>
+        <h1 className="text-3xl font-bold">{t.menu.relatorios}</h1>
+        <p className="text-muted-foreground">Visualize relatórios detalhados do seu negócio</p>
       </div>
 
-      {produtosBaixoEstoque.length > 0 && (
-        <Alert className="border-yellow-200 bg-yellow-50 dark:border-yellow-900 dark:bg-yellow-950">
-          <AlertTriangle className="h-4 w-4 text-yellow-600" />
-          <AlertDescription className="text-yellow-800 dark:text-yellow-200">
-            {produtosBaixoEstoque.length} produto(s) com estoque baixo
-          </AlertDescription>
-        </Alert>
-      )}
+      <Tabs defaultValue="financeiro" className="w-full">
+        <TabsList>
+          <TabsTrigger value="financeiro">{t.relatorios.relatorioFinanceiro}</TabsTrigger>
+          <TabsTrigger value="vendas">{t.relatorios.relatorioVendas}</TabsTrigger>
+          <TabsTrigger value="clientes">{t.relatorios.relatorioClientes}</TabsTrigger>
+          <TabsTrigger value="faturamento">{t.relatorios.relatorioFaturamento}</TabsTrigger>
+        </TabsList>
 
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total de Produtos</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalProdutos}</div>
-          </CardContent>
-        </Card>
+        <TabsContent value="financeiro" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>{t.relatorios.relatorioFinanceiro}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">Resumo financeiro do período</p>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">{t.estoque.produtoBaixoEstoque}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">{produtosBaixoEstoque.length}</div>
-          </CardContent>
-        </Card>
+        <TabsContent value="vendas" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>{t.relatorios.relatorioVendas}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">Análise de vendas e serviços prestados</p>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Valor Total em Estoque</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(valorTotalEstoque)}</div>
-          </CardContent>
-        </Card>
+        <TabsContent value="clientes" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>{t.relatorios.relatorioClientes}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">Clientes recorrentes e satisfação</p>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Categoria com Mais Produtos</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">-</div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>{t.estoque.listaEstoque}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t.estoque.nomeProduto}</TableHead>
-                  <TableHead>{t.estoque.categoria}</TableHead>
-                  <TableHead>{t.estoque.quantidade}</TableHead>
-                  <TableHead>{t.estoque.preco}</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {produtos?.slice(0, 8).map((produto) => (
-                  <TableRow key={produto.id}>
-                    <TableCell className="font-medium">{produto.nome}</TableCell>
-                    <TableCell>{produto.categoria}</TableCell>
-                    <TableCell>
-                      {produto.quantidade_atual} {produto.unidade}
-                    </TableCell>
-                    <TableCell>{formatCurrency(produto.preco_venda)}</TableCell>
-                    <TableCell>
-                      <Badge variant={
-                        produto.quantidade_atual <= produto.quantidade_minima 
-                          ? 'destructive' 
-                          : 'default'
-                      }>
-                        {produto.quantidade_atual <= produto.quantidade_minima 
-                          ? t.estoque.produtoBaixoEstoque
-                          : 'OK'
-                        }
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>{t.estoque.movimentacoes}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Produto</TableHead>
-                  <TableHead>{t.estoque.quantidade}</TableHead>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead>Data</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {movimentacoes?.map((mov) => (
-                  <TableRow key={mov.id}>
-                    <TableCell className="text-sm">-</TableCell>
-                    <TableCell>{mov.quantidade}</TableCell>
-                    <TableCell>
-                      <Badge variant={mov.tipo === 'entrada' ? 'default' : 'destructive'}>
-                        {mov.tipo === 'entrada' ? t.estoque.entrada : t.estoque.saida}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-sm">
-                      {new Date(mov.created_at).toLocaleDateString('pt-BR')}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      </div>
+        <TabsContent value="faturamento" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>{t.relatorios.relatorioFaturamento}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">Faturamento por barbeiro e período</p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }
