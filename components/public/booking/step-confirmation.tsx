@@ -33,11 +33,40 @@ export function StepConfirmation({
   const handleConfirm = async () => {
     setIsLoading(true)
     try {
-      // TODO: Fazer POST para salvar agendamento
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      console.log("[v0] Iniciando criação do agendamento com dados:", booking)
+      
+      const startTime = new Date(`${booking.date}T${booking.time}:00`)
+      const endTime = new Date(startTime.getTime() + (service?.duration_minutes || 60) * 60000)
+      
+      const response = await fetch('/api/booking', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          barbershop_id: booking.barbershopId,
+          service_id: booking.serviceId,
+          barber_id: booking.barberId === 'any' ? null : booking.barberId,
+          client_name: booking.clientName,
+          client_phone: booking.clientPhone,
+          start_time: startTime.toISOString(),
+          end_time: endTime.toISOString(),
+        }),
+      })
+
+      console.log("[v0] Response status:", response.status)
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        console.error("[v0] Erro da API:", errorData)
+        throw new Error(errorData.error || 'Erro ao confirmar agendamento')
+      }
+
+      const data = await response.json()
+      console.log("[v0] Agendamento criado com sucesso:", data)
+      toast.success('Agendamento confirmado!')
       onConfirm()
     } catch (error) {
-      toast.error('Erro ao confirmar agendamento')
+      console.error("[v0] Erro ao confirmar agendamento:", error)
+      toast.error(error instanceof Error ? error.message : 'Erro ao confirmar agendamento')
     } finally {
       setIsLoading(false)
     }
@@ -157,3 +186,4 @@ export function StepConfirmation({
     </div>
   )
 }
+

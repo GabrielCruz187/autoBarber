@@ -18,6 +18,7 @@ export interface BookingState {
   clientName: string
   clientPhone: string
   clientEmail: string
+  barbershopId?: string
 }
 
 interface BookingFlowProps {
@@ -42,6 +43,7 @@ export function BookingFlow({
     clientName: '',
     clientPhone: '',
     clientEmail: '',
+    barbershopId: barbershopId,
   })
 
   const updateBooking = (updates: Partial<BookingState>) => {
