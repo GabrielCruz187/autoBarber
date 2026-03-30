@@ -1,226 +1,151 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Zap, Link2, Copy } from 'lucide-react'
-import { toast } from 'sonner'
-
-interface GamificationConfig {
-  id: string
-  is_enabled: boolean
-  app_url: string | null
-  discount_percent: number | null
-}
+import { ExternalLink, Star, Users, TrendingUp } from 'lucide-react'
 
 export default function GamificationPage() {
-  const [config, setConfig] = useState<GamificationConfig | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [appUrl, setAppUrl] = useState('')
-  const [discountPercent, setDiscountPercent] = useState('0')
-  const [isEnabled, setIsEnabled] = useState(false)
-
-  useEffect(() => {
-    fetchConfig()
-  }, [])
-
-  const fetchConfig = async () => {
-    try {
-      const response = await fetch('/api/admin/gamification/config')
-      if (!response.ok) throw new Error('Failed to fetch')
-      const data = await response.json()
-      setConfig(data)
-      setAppUrl(data.app_url || '')
-      setDiscountPercent(String(data.discount_percent || 0))
-      setIsEnabled(data.is_enabled)
-    } catch (error) {
-      console.error('[v0] Error fetching gamification config:', error)
-      toast.error('Erro ao carregar configuração')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleSave = async () => {
-    if (isEnabled && !appUrl.trim()) {
-      toast.error('URL do app é obrigatória')
-      return
-    }
-
-    setSaving(true)
-    try {
-      const response = await fetch('/api/admin/gamification/config', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          is_enabled: isEnabled,
-          app_url: appUrl || null,
-          discount_percent: discountPercent ? parseFloat(discountPercent) : null,
-        }),
-      })
-
-      if (!response.ok) throw new Error('Failed to save')
-      toast.success('Configuração salva com sucesso!')
-      await fetchConfig()
-    } catch (error) {
-      toast.error('Erro ao salvar configuração')
-      console.error('[v0] Save error:', error)
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  if (loading) {
-    return <div className="text-center py-20">Carregando...</div>
-  }
-
-  const referralLink = `${typeof window !== 'undefined' ? window.location.origin : ''}/agendamento/referral?discount=${discountPercent}`
+  const gamificationAppUrl = 'https://seu-app-gamificacao.com'
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Gamificação</h1>
-        <p className="text-muted-foreground mt-2">
-          Integre com seu app de pontos e ofereça descontos aos clientes
+        <h1 className="text-4xl font-bold tracking-tight">Programa de Gamificação</h1>
+        <p className="text-muted-foreground mt-3 text-lg">
+          Engaje seus clientes com um sistema de pontos e recompensas
         </p>
       </div>
 
-      <Card>
+      <Card className="border-2">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Zap className="h-5 w-5" />
-            Ativar Gamificação
+          <CardTitle className="flex items-center gap-3">
+            <Star className="h-6 w-6 text-yellow-500" />
+            Sobre o App de Gamificação
           </CardTitle>
           <CardDescription>
-            Permita que clientes acumulem pontos e ganhem descontos
+            Um aplicativo completo e independente para gerenciar pontos de clientes
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="flex items-center gap-3">
-            <Checkbox
-              id="enable"
-              checked={isEnabled}
-              onCheckedChange={(checked) => setIsEnabled(checked as boolean)}
-            />
-            <Label htmlFor="enable" className="font-normal cursor-pointer">
-              Ativar integração com programa de pontos
-            </Label>
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <h3 className="font-semibold text-base">O que é?</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                O app de gamificação é uma aplicação integrada e pronta para usar que permite seus clientes acumularem pontos a cada agendamento, visualizarem seu saldo, competirem no ranking e resgatarem recompensas exclusivas.
+              </p>
+            </div>
+            <div className="space-y-4">
+              <h3 className="font-semibold text-base">Recursos Principais</h3>
+              <ul className="text-sm text-muted-foreground space-y-2">
+                <li className="flex gap-2">
+                  <Users className="h-4 w-4 flex-shrink-0 mt-0.5 text-blue-600" />
+                  <span>Gestão de pontos por cliente</span>
+                </li>
+                <li className="flex gap-2">
+                  <TrendingUp className="h-4 w-4 flex-shrink-0 mt-0.5 text-blue-600" />
+                  <span>Ranking competitivo de clientes</span>
+                </li>
+                <li className="flex gap-2">
+                  <Star className="h-4 w-4 flex-shrink-0 mt-0.5 text-blue-600" />
+                  <span>Sistema de recompensas e resgate</span>
+                </li>
+              </ul>
+            </div>
           </div>
 
-          {isEnabled && (
-            <div className="space-y-4 pt-4 border-t">
-              <div className="space-y-2">
-                <Label htmlFor="app-url">URL do App de Gamificação</Label>
-                <Input
-                  id="app-url"
-                  placeholder="https://seu-app-gamificacao.com"
-                  value={appUrl}
-                  onChange={(e) => setAppUrl(e.target.value)}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Clientes serão redirecionados para este link com referral ID
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="discount">Desconto para Novo Cliente (%)</Label>
-                <Input
-                  id="discount"
-                  type="number"
-                  min="0"
-                  max="100"
-                  placeholder="10"
-                  value={discountPercent}
-                  onChange={(e) => setDiscountPercent(e.target.value)}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Desconto automático quando cliente se cadastra via link de referência
-                </p>
-              </div>
-
-              <div className="space-y-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <p className="text-sm font-medium">Link de Referência</p>
-                <div className="flex gap-2">
-                  <code className="flex-1 bg-white p-2 rounded text-xs break-all border">
-                    {referralLink}
-                  </code>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => {
-                      navigator.clipboard.writeText(referralLink)
-                      toast.success('Link copiado!')
-                    }}
-                  >
-                    <Copy className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-
-              <div className="space-y-3 p-4 bg-green-50 rounded-lg border border-green-200">
-                <p className="text-sm font-medium">Como Funciona</p>
-                <ol className="text-xs space-y-2 list-decimal list-inside text-green-900">
-                  <li>Compartilhe o link acima com seus clientes</li>
-                  <li>Clientes clicam no link e acessam seu app de gamificação</li>
-                  <li>Sistema sincroniza pontos via webhook</li>
-                  <li>Desconto automático aplicado no primeiro agendamento</li>
-                </ol>
-              </div>
-            </div>
-          )}
-
-          <Button onClick={handleSave} disabled={saving} className="w-full">
-            {saving ? 'Salvando...' : 'Salvar Configuração'}
-          </Button>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <p className="text-sm text-blue-900 font-medium mb-2">✓ App Pronto para Usar</p>
+            <p className="text-xs text-blue-800">
+              Este é um aplicativo completo e independente já desenvolvido. Basta você conectar seu link e começar a usar!
+            </p>
+          </div>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Webhook de Sincronização</CardTitle>
+          <CardTitle>Ativar App de Gamificação</CardTitle>
           <CardDescription>
-            Configure este webhook em seu app de gamificação
+            Se deseja ativar o programa de gamificação para sua barbearia, coloque o link do app abaixo
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <p className="text-sm font-medium">URL do Webhook</p>
+        <CardContent className="space-y-6">
+          <div className="space-y-3">
+            <label className="text-sm font-medium">URL do App de Gamificação</label>
             <div className="flex gap-2">
-              <code className="flex-1 bg-muted p-3 rounded text-xs break-all">
-                {typeof window !== 'undefined'
-                  ? `${window.location.origin}/api/gamification/webhook`
-                  : 'https://seu-app.com/api/gamification/webhook'}
-              </code>
+              <Input
+                placeholder="https://seu-app-gamificacao.com"
+                defaultValue={gamificationAppUrl}
+                disabled
+                className="bg-muted"
+              />
               <Button
                 variant="outline"
-                size="icon"
+                size="sm"
                 onClick={() => {
-                  navigator.clipboard.writeText(
-                    `${typeof window !== 'undefined' ? window.location.origin : ''}/api/gamification/webhook`
-                  )
-                  toast.success('Copiado!')
+                  if (gamificationAppUrl !== 'https://seu-app-gamificacao.com') {
+                    window.open(gamificationAppUrl, '_blank')
+                  }
                 }}
               >
-                <Copy className="h-4 w-4" />
+                <ExternalLink className="h-4 w-4" />
               </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Cole o link do seu app de gamificação aqui. Seus clientes serão redirecionados para este endereço.
+            </p>
+          </div>
+
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 space-y-3">
+            <p className="text-sm font-semibold text-green-900">Como Funciona a Integração</p>
+            <ol className="text-xs text-green-800 space-y-2 list-decimal list-inside">
+              <li>Seus clientes acessam o app através do link que você configurar</li>
+              <li>Cada vez que fazem um agendamento, ganham pontos automaticamente</li>
+              <li>Podem visualizar seu saldo e histórico de pontos no app</li>
+              <li>Resgatam prêmios e descontos usando seus pontos</li>
+              <li>Competem no ranking com outros clientes da sua barbearia</li>
+            </ol>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
+              <p className="text-xs font-medium text-amber-900 mb-2">Benefícios para Clientes</p>
+              <ul className="text-xs text-amber-800 space-y-1">
+                <li>• Ganham pontos com cada serviço</li>
+                <li>• Resgatam prêmios exclusivos</li>
+                <li>• Acompanham progresso em tempo real</li>
+                <li>• Participam de competições</li>
+              </ul>
+            </div>
+            <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+              <p className="text-xs font-medium text-purple-900 mb-2">Benefícios para Você</p>
+              <ul className="text-xs text-purple-800 space-y-1">
+                <li>• Aumenta frequência de clientes</li>
+                <li>• Maior engajamento e fidelização</li>
+                <li>• Dados sobre preferências dos clientes</li>
+                <li>• Marketing integrado ao app</li>
+              </ul>
             </div>
           </div>
 
-          <div className="space-y-2">
-            <p className="text-sm font-medium">Payload Esperado</p>
-            <pre className="bg-muted p-3 rounded text-xs overflow-auto">
-{`{
-  "customerId": "uuid",
-  "points": 100,
-  "action": "earned" | "spent",
-  "description": "Agendamento concluído"
-}`}
-            </pre>
-          </div>
+          <Button className="w-full" size="lg">
+            Ativar Gamificação
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card className="border-dashed">
+        <CardHeader>
+          <CardTitle className="text-base">Precisa de Mais Informações?</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Entre em contato conosco para saber como integrar completamente seu app de gamificação com a plataforma de agendamentos.
+          </p>
+          <Button variant="outline" className="w-full">
+            Falar com Suporte
+          </Button>
         </CardContent>
       </Card>
     </div>

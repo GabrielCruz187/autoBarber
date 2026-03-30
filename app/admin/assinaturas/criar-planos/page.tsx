@@ -1,35 +1,80 @@
-import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
+'use client'
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Plus } from "lucide-react"
+import { useState } from "react"
+import { toast } from "sonner"
 
-export default async function CriarPlanosPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+export default function CriarPlanosPage() {
+  const [formData, setFormData] = useState({
+    nome: '',
+    descricao: '',
+    preco: '',
+    servicos_inclusos: '',
+    beneficios: '',
+  })
+  const [isLoading, setIsLoading] = useState(false)
 
-  if (!user) {
-    redirect("/auth/login")
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }))
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("barbershop_id")
-    .eq("id", user.id)
-    .single()
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
 
-  if (!profile?.barbershop_id) {
-    redirect("/onboarding")
+    if (!formData.nome || !formData.preco) {
+      toast.error('Erro', { description: 'Preencha todos os campos obrigatórios' })
+      return
+    }
+
+    setIsLoading(true)
+    try {
+      const response = await fetch('/api/admin/assinaturas/planos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nome: formData.nome,
+          descricao: formData.descricao || null,
+          preco: parseFloat(formData.preco),
+          servicos_inclusos: formData.servicos_inclusos ? parseInt(formData.servicos_inclusos) : null,
+          beneficios: formData.beneficios ? formData.beneficios.split('\n').filter(b => b.trim()) : [],
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Erro ao criar plano')
+      }
+
+      toast.success('Sucesso!', { description: 'Plano de assinatura criado com sucesso!' })
+      setFormData({
+        nome: '',
+        descricao: '',
+        preco: '',
+        servicos_inclusos: '',
+        beneficios: '',
+      })
+    } catch (error) {
+      toast.error('Erro', { description: error instanceof Error ? error.message : 'Erro ao criar plano de assinatura' })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Criar Plano de Assinatura</h1>
-        <p className="text-muted-foreground">Adicione um novo plano de assinatura</p>
+        <p className="text-muted-foreground">Adicione um novo plano de assinatura para sua barbearia</p>
       </div>
 
       <Card>
@@ -37,39 +82,85 @@ export default async function CriarPlanosPage() {
           <CardTitle>Novo Plano</CardTitle>
         </CardHeader>
         <CardContent>
-          <form className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-2 gap-6">
               <div>
-                <Label>Nome do Plano</Label>
-                <Input placeholder="Ex: Plano Premium" />
+                <Label htmlFor="nome">Nome do Plano</Label>
+                <Input 
+                  id="nome"
+                  name="nome"
+                  placeholder="Ex: Plano Premium" 
+                  value={formData.nome}
+                  onChange={handleChange}
+                  required
+                />
               </div>
               <div>
-                <Label>Preço Mensal</Label>
-                <Input type="number" placeholder="0.00" step="0.01" />
+                <Label htmlFor="preco">Preço Mensal</Label>
+                <Input 
+                  id="preco"
+                  name="preco"
+                  type="number" 
+                  placeholder="0.00" 
+                  step="0.01"
+                  value={formData.preco}
+                  onChange={handleChange}
+                  required
+                />
               </div>
             </div>
 
             <div>
-              <Label>Descrição</Label>
-              <Textarea placeholder="Descreva os benefícios do plano" />
+              <Label htmlFor="descricao">Descrição</Label>
+              <Textarea 
+                id="descricao"
+                name="descricao"
+                placeholder="Descreva os benefícios do plano"
+                value={formData.descricao}
+                onChange={handleChange}
+              />
             </div>
 
             <div>
-              <Label>Quantidade de Serviços Inclusos</Label>
-              <Input type="number" placeholder="0" />
+              <Label htmlFor="servicos_inclusos">Quantidade de Serviços Inclusos</Label>
+              <Input 
+                id="servicos_inclusos"
+                name="servicos_inclusos"
+                type="number" 
+                placeholder="0"
+                value={formData.servicos_inclusos}
+                onChange={handleChange}
+              />
             </div>
 
             <div>
-              <Label>Benefícios (um por linha)</Label>
-              <Textarea placeholder="Benefício 1&#10;Benefício 2&#10;Benefício 3" rows={5} />
+              <Label htmlFor="beneficios">Benefícios (um por linha)</Label>
+              <Textarea 
+                id="beneficios"
+                name="beneficios"
+                placeholder="Benefício 1&#10;Benefício 2&#10;Benefício 3" 
+                rows={5}
+                value={formData.beneficios}
+                onChange={handleChange}
+              />
             </div>
 
             <div className="flex gap-2">
-              <Button type="submit" className="gap-2">
+              <Button type="submit" className="gap-2" disabled={isLoading}>
                 <Plus className="h-4 w-4" />
-                Criar Plano
+                {isLoading ? 'Criando...' : 'Criar Plano'}
               </Button>
-              <Button type="button" variant="outline">
+              <Button 
+                type="button" 
+                variant="outline"
+                onClick={() => setFormData({
+                  nome: '',
+                  descricao: '',
+                  preco: '',
+                  servicos_inclusos: '',
+                  beneficios: '',
+                })}
+              >
                 Cancelar
               </Button>
             </div>
@@ -79,3 +170,5 @@ export default async function CriarPlanosPage() {
     </div>
   )
 }
+
+
