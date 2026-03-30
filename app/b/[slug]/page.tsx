@@ -40,6 +40,14 @@ export default async function BarbershopPage({ params }: BarbershopPageProps) {
     .eq("is_active", true)
     .order("first_name")
 
+  // Buscar planos de assinatura
+  const { data: subscriptionPlans } = await supabase
+    .from("planos_assinatura")
+    .select("*")
+    .eq("barbershop_id", barbershop.id)
+    .eq("ativo", true)
+    .order("preco")
+
   return (
     <div className="min-h-screen bg-background">
       <BookingFlow
@@ -47,7 +55,9 @@ export default async function BarbershopPage({ params }: BarbershopPageProps) {
         services={services || []}
         barbers={barbers || []}
         barbershopName={barbershop.name}
+        subscriptionPlans={subscriptionPlans || []}
       />
     </div>
   )
 }
+

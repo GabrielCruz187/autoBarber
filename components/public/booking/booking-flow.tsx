@@ -9,6 +9,7 @@ import { StepTimeSelection } from './step-time-selection'
 import { StepClientInfo } from './step-client-info'
 import { StepConfirmation } from './step-confirmation'
 import { StepSuccess } from './step-success'
+import { SubscriptionPlansSection } from '../subscription-plans-section'
 
 export interface BookingState {
   serviceId: string | null
@@ -26,6 +27,7 @@ interface BookingFlowProps {
   services: any[]
   barbers: any[]
   barbershopName: string
+  subscriptionPlans?: any[]
 }
 
 export function BookingFlow({
@@ -33,6 +35,7 @@ export function BookingFlow({
   services,
   barbers,
   barbershopName,
+  subscriptionPlans = [],
 }: BookingFlowProps) {
   const [step, setStep] = useState(1)
   const [booking, setBooking] = useState<BookingState>({
@@ -146,6 +149,13 @@ export function BookingFlow({
             />
           )}
         </div>
+
+        {/* Subscription Plans Section */}
+        {subscriptionPlans.length > 0 && (
+          <div className="mt-16 pt-12 border-t">
+            <SubscriptionPlansSection plans={subscriptionPlans} />
+          </div>
+        )}
       </div>
     </div>
   )
