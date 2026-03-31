@@ -1,11 +1,10 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { t } from "@/lib/i18n/useTranslation"
-import { Plus } from "lucide-react"
+import { AbrirCaixaDialog } from "@/components/admin/caixa/abrir-caixa-dialog"
 
 export default async function CaixaPage() {
   const supabase = await createClient()
@@ -47,10 +46,7 @@ export default async function CaixaPage() {
           <h1 className="text-3xl font-bold">{t.menu.caixa}</h1>
           <p className="text-muted-foreground">Controle de abertura e fechamento de caixa</p>
         </div>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          {caixaAberta ? t.caixa.fecharCaixa : t.caixa.abrirCaixa}
-        </Button>
+        <AbrirCaixaDialog caixaAberta={!!caixaAberta} />
       </div>
 
       {caixaAberta && (

@@ -6,6 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { t } from "@/lib/i18n/useTranslation"
 import { NovaComandaDialog } from "@/components/admin/comandas/nova-comanda-dialog"
+import { EditarComandaDialog } from "@/components/admin/comandas/editar-comanda-dialog"
 import { Plus } from "lucide-react"
 
 export default async function ComandasPage() {
@@ -110,6 +111,7 @@ export default async function ComandasPage() {
                 <TableHead>{t.comandas.itens}</TableHead>
                 <TableHead>{t.comandas.total}</TableHead>
                 <TableHead>{t.comandas.statusComanda}</TableHead>
+                <TableHead>Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -135,6 +137,9 @@ export default async function ComandasPage() {
                        comanda.status === 'paga' ? t.comandas.paga :
                        t.comandas.cancelada}
                     </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <EditarComandaDialog comanda={comanda} />
                   </TableCell>
                 </TableRow>
               ))}
