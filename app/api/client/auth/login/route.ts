@@ -7,26 +7,36 @@ export async function POST(request: NextRequest) {
     console.log('[v0] POST /api/client/auth/login - iniciando')
     
     const body = await request.json()
-    const { phone, password } = body
+    const { phone, password, barbershopId } = body
 
-    if (!phone || !password) {
+    if (!phone || !password || !barbershopId) {
       return NextResponse.json(
-        { error: 'Telefone e senha são obrigatórios' },
+        { error: 'Telefone, senha e barbearia são obrigatórios' },
         { status: 400 }
       )
     }
 
     const supabase = await createClient()
 
-    // Buscar cliente pelo telefone
+    // Buscar cliente pelo telefone e barbearia
     const { data: client, error } = await supabase
       .from('clients')
       .select('*')
       .eq('phone', phone)
+      .eq('barbershop_id', barbershopId)
       .single()
 
     if (error || !client) {
-      console.log('[v0] Cliente não encontrado:', phone)
+      console.log('[v0] Cliente não encontrado:', phone, 'na barbearia:', barbershopId)
+      return NextResponse.json(
+        { error: 'Telefone ou senha inválidos' },
+        { status: 401 }
+      )
+    }
+
+    // Verificar se password_hash existe
+    if (!client.password_hash) {
+      console.log('[v0] Cliente não tem password_hash:', phone)
       return NextResponse.json(
         { error: 'Telefone ou senha inválidos' },
         { status: 401 }
@@ -44,7 +54,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Gerar token simples (em produção, usar JWT)
+    // Gerar token
     const token = Buffer.from(JSON.stringify({ 
       clientId: client.id, 
       barbershopId: client.barbershop_id,

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Plus } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
@@ -16,6 +17,7 @@ export default function CriarPlanosPage() {
     preco: '',
     servicos_inclusos: '',
     beneficios: '',
+    visivel: true,
   })
   const [isLoading, setIsLoading] = useState(false)
 
@@ -24,6 +26,13 @@ export default function CriarPlanosPage() {
     setFormData(prev => ({
       ...prev,
       [name]: value
+    }))
+  }
+
+  const handleCheckboxChange = (checked: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      visivel: checked
     }))
   }
 
@@ -46,6 +55,7 @@ export default function CriarPlanosPage() {
           preco: parseFloat(formData.preco),
           servicos_inclusos: formData.servicos_inclusos ? parseInt(formData.servicos_inclusos) : null,
           beneficios: formData.beneficios ? formData.beneficios.split('\n').filter(b => b.trim()) : [],
+          visivel: formData.visivel,
         }),
       })
 
@@ -62,6 +72,7 @@ export default function CriarPlanosPage() {
         preco: '',
         servicos_inclusos: '',
         beneficios: '',
+        visivel: true,
       })
     } catch (error) {
       toast.error('Erro', { description: error instanceof Error ? error.message : 'Erro ao criar plano de assinatura' })
@@ -145,6 +156,17 @@ export default function CriarPlanosPage() {
               />
             </div>
 
+            <div className="flex items-center space-x-2 p-3 bg-secondary/50 rounded-lg">
+              <Checkbox 
+                id="visivel"
+                checked={formData.visivel}
+                onCheckedChange={handleCheckboxChange}
+              />
+              <Label htmlFor="visivel" className="cursor-pointer mb-0">
+                Exibir este plano para clientes
+              </Label>
+            </div>
+
             <div className="flex gap-2">
               <Button type="submit" className="gap-2" disabled={isLoading}>
                 <Plus className="h-4 w-4" />
@@ -159,6 +181,7 @@ export default function CriarPlanosPage() {
                   preco: '',
                   servicos_inclusos: '',
                   beneficios: '',
+                  visivel: true,
                 })}
               >
                 Cancelar
@@ -170,5 +193,3 @@ export default function CriarPlanosPage() {
     </div>
   )
 }
-
-

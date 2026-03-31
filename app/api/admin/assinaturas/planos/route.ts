@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     console.log("[v0] Body recebido:", body)
     
-    const { nome, descricao, preco, servicos_inclusos, beneficios } = body
+    const { nome, descricao, preco, servicos_inclusos, beneficios, visivel } = body
 
     if (!nome || preco === undefined) {
       console.warn("[v0] Campos obrigatórios faltando:", { nome, preco })
@@ -90,13 +90,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Update with optional fields if provided
-    if (descricao || servicos_inclusos || (Array.isArray(beneficios) && beneficios.length > 0)) {
+    if (descricao || servicos_inclusos || (Array.isArray(beneficios) && beneficios.length > 0) || visivel !== undefined) {
       const updateData: any = {}
       if (descricao) updateData.descricao = descricao.trim()
       if (servicos_inclusos) updateData.servicos_inclusos = parseInt(servicos_inclusos)
       if (Array.isArray(beneficios) && beneficios.length > 0) {
         updateData.beneficios = beneficios.filter((b: string) => b.trim())
       }
+      if (visivel !== undefined) updateData.visivel = visivel
 
       console.log("[v0] Atualizando plano com campos opcionais:", updateData)
       

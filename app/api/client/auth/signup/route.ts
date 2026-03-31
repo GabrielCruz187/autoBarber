@@ -7,9 +7,9 @@ export async function POST(request: NextRequest) {
     console.log('[v0] POST /api/client/auth/signup - iniciando')
     
     const body = await request.json()
-    const { firstName, lastName, phone, cpf, password } = body
+    const { firstName, lastName, phone, cpf, password, barbershopId } = body
 
-    if (!firstName || !lastName || !phone || !cpf || !password) {
+    if (!firstName || !lastName || !phone || !cpf || !password || !barbershopId) {
       return NextResponse.json(
         { error: 'Todos os campos são obrigatórios' },
         { status: 400 }
@@ -25,11 +25,12 @@ export async function POST(request: NextRequest) {
 
     const supabase = await createClient()
 
-    // Verificar se cliente já existe com este telefone
+    // Verificar se cliente já existe com este telefone na barbearia
     const { data: existingClient } = await supabase
       .from('clients')
       .select('id')
       .eq('phone', phone)
+      .eq('barbershop_id', barbershopId)
       .single()
 
     if (existingClient) {
@@ -40,11 +41,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Verificar se CPF já existe
+    // Verificar se CPF já existe na barbearia
     const { data: existingCpf } = await supabase
       .from('clients')
       .select('id')
       .eq('cpf', cpf)
+      .eq('barbershop_id', barbershopId)
       .single()
 
     if (existingCpf) {
@@ -58,6 +60,8 @@ export async function POST(request: NextRequest) {
     // Hash da senha
     const passwordHash = await bcrypt.hash(password, 10)
 
+    console.log('[v0] Inserindo novo cliente:', { firstName, lastName, phone, cpf, barbershopId })
+
     // Criar novo cliente
     const { data: newClient, error: createError } = await supabase
       .from('clients')
@@ -67,13 +71,21 @@ export async function POST(request: NextRequest) {
         phone,
         cpf,
         password_hash: passwordHash,
-        // barbershop_id será setado no contexto da barbearia
+        barbershop_id: barbershopId,
       })
       .select()
       .single()
 
-    if (createError || !newClient) {
+    if (createError) {
       console.error('[v0] Erro ao criar cliente:', createError)
+      return NextResponse.json(
+        { error: `Erro ao criar conta: ${createError.message}` },
+        { status: 500 }
+      )
+    }
+
+    if (!newClient) {
+      console.error('[v0] Cliente não foi retornado após insert')
       return NextResponse.json(
         { error: 'Erro ao criar conta' },
         { status: 500 }

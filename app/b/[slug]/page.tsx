@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { BookingFlow } from "@/components/public/booking/booking-flow"
+import { ProtectedBooking } from "@/components/public/protected-booking"
 
 interface BarbershopPageProps {
   params: Promise<{
@@ -40,23 +41,26 @@ export default async function BarbershopPage({ params }: BarbershopPageProps) {
     .eq("is_active", true)
     .order("first_name")
 
-  // Buscar planos de assinatura
+  // Buscar planos de assinatura visíveis
   const { data: subscriptionPlans } = await supabase
     .from("planos_assinatura")
     .select("*")
     .eq("barbershop_id", barbershop.id)
     .eq("ativo", true)
+    .eq("visivel", true)
     .order("preco")
 
   return (
     <div className="min-h-screen bg-background">
-      <BookingFlow
-        barbershopId={barbershop.id}
-        services={services || []}
-        barbers={barbers || []}
-        barbershopName={barbershop.name}
-        subscriptionPlans={subscriptionPlans || []}
-      />
+      <ProtectedBooking slug={slug}>
+        <BookingFlow
+          barbershopId={barbershop.id}
+          services={services || []}
+          barbers={barbers || []}
+          barbershopName={barbershop.name}
+          subscriptionPlans={subscriptionPlans || []}
+        />
+      </ProtectedBooking>
     </div>
   )
 }
