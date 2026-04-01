@@ -86,7 +86,7 @@ function AuthContent({ slug }: { slug: string }) {
       // Salvar token e redirecionar para o painel
       localStorage.setItem('clientToken', data.token)
       localStorage.setItem('clientId', data.clientId)
-      router.push(`/cliente/${slug}`)
+      router.push(`/b/${slug}`)
     } catch (error) {
       toast.error('Erro', { description: error instanceof Error ? error.message : 'Erro ao fazer login' })
     } finally {
@@ -131,7 +131,7 @@ function AuthContent({ slug }: { slug: string }) {
       // Salvar token e redirecionar para o painel
       localStorage.setItem('clientToken', data.token)
       localStorage.setItem('clientId', data.clientId)
-      router.push(`/cliente/${slug}`)
+      router.push(`/b/${slug}`)
     } catch (error) {
       toast.error('Erro', { description: error instanceof Error ? error.message : 'Erro ao criar conta' })
     } finally {
@@ -252,6 +252,41 @@ function AuthContent({ slug }: { slug: string }) {
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Criar Conta
                 </Button>
+
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">
+                      ou
+                    </span>
+                  </div>
+                </div>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full gap-2"
+                  onClick={() => {
+                    const whatsappMessage = encodeURIComponent(
+                      `Oi! Gostaria de agendar um horário e criar minha conta pelo WhatsApp. Meu nome é ${signupData.firstName} ${signupData.lastName}, telefone: ${signupData.phone}, CPF: ${signupData.cpf}`
+                    )
+                    window.open(
+                      `https://wa.me/?text=${whatsappMessage}`,
+                      '_blank'
+                    )
+                  }}
+                >
+                  <svg
+                    className="h-4 w-4"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.67-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.076 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421-7.403h-.004a9.87 9.87 0 00-4.998 1.523c-1.545.944-2.798 2.418-3.594 4.032-.862 1.815-1.242 3.74-1.048 5.66.194 1.92 1.01 3.73 2.354 5.148.783.884 1.77 1.568 2.89 2.003.277.108.564.207.851.295 1.32.408 2.764.358 4.038-.134 1.28-.5 2.38-1.494 3.058-2.733l.316-.611.635.411c1.024.663 2.145 1.122 3.33 1.338 1.184.216 2.414.136 3.552-.273 1.137-.409 2.13-1.224 2.774-2.252.537-.84.872-1.835.98-2.873.129-1.254-.002-2.533-.376-3.737-.374-1.204-.978-2.306-1.798-3.23-.82-.924-1.889-1.677-3.09-2.2-1.2-.522-2.516-.74-3.849-.634-1.308.108-2.545.56-3.582 1.333l-.61.387z" />
+                  </svg>
+                  Agendar via WhatsApp
+                </Button>
               </form>
             </TabsContent>
           </Tabs>
@@ -260,3 +295,4 @@ function AuthContent({ slug }: { slug: string }) {
     </div>
   )
 }
+

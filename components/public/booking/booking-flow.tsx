@@ -6,6 +6,7 @@ import { StepServiceSelection } from './step-service-selection'
 import { StepBarberSelection } from './step-barber-selection'
 import { StepDateSelection } from './step-date-selection'
 import { StepTimeSelection } from './step-time-selection'
+import { StepSubscriptionSelection } from './step-subscription-selection'
 import { StepClientInfo } from './step-client-info'
 import { StepConfirmation } from './step-confirmation'
 import { StepSuccess } from './step-success'
@@ -16,6 +17,7 @@ export interface BookingState {
   barberId: string | null
   date: Date | null
   time: string | null
+  subscriptionPlanId: string | null
   clientName: string
   clientPhone: string
   clientEmail: string
@@ -43,6 +45,7 @@ export function BookingFlow({
     barberId: null,
     date: null,
     time: null,
+    subscriptionPlanId: null,
     clientName: '',
     clientPhone: '',
     clientEmail: '',
@@ -61,7 +64,7 @@ export function BookingFlow({
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-secondary/5">
       <div className="max-w-2xl mx-auto px-4 py-8">
-        <BookingStepper currentStep={step} totalSteps={7} />
+        <BookingStepper currentStep={step} totalSteps={8} />
 
         <div className="mt-8 animate-in fade-in-50 duration-300">
           {step === 1 && (
@@ -114,6 +117,18 @@ export function BookingFlow({
           )}
 
           {step === 5 && (
+            <StepSubscriptionSelection
+              plans={subscriptionPlans}
+              selectedPlan={booking.subscriptionPlanId}
+              onSelect={(planId) => {
+                updateBooking({ subscriptionPlanId: planId })
+                goToStep(6)
+              }}
+              onBack={() => goToStep(4)}
+            />
+          )}
+
+          {step === 6 && (
             <StepClientInfo
               clientData={{
                 name: booking.clientName,
@@ -126,23 +141,23 @@ export function BookingFlow({
                   clientPhone: data.phone,
                   clientEmail: data.email,
                 })
-                goToStep(6)
+                goToStep(7)
               }}
-              onBack={() => goToStep(4)}
-            />
-          )}
-
-          {step === 6 && (
-            <StepConfirmation
-              booking={booking}
-              services={services}
-              barbers={barbers}
-              onConfirm={() => goToStep(7)}
               onBack={() => goToStep(5)}
             />
           )}
 
           {step === 7 && (
+            <StepConfirmation
+              booking={booking}
+              services={services}
+              barbers={barbers}
+              onConfirm={() => goToStep(8)}
+              onBack={() => goToStep(6)}
+            />
+          )}
+
+          {step === 8 && (
             <StepSuccess
               barbershopName={barbershopName}
               clientName={booking.clientName}

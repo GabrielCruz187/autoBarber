@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { CheckCircle2 } from 'lucide-react'
@@ -11,6 +12,11 @@ interface StepSuccessProps {
 }
 
 export function StepSuccess({ barbershopName, clientName }: StepSuccessProps) {
+  useEffect(() => {
+    // Disparar evento para recarregar agendamentos no dashboard
+    window.dispatchEvent(new Event('appointmentBooked'))
+  }, [])
+
   return (
     <div className="space-y-6 py-12 text-center">
       <div className="flex justify-center animate-in fade-in-50 duration-300">
@@ -47,3 +53,4 @@ export function StepSuccess({ barbershopName, clientName }: StepSuccessProps) {
     </div>
   )
 }
+

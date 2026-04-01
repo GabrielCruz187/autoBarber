@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
 
     const supabase = await createClient()
     const body = await request.json()
-    const { barbershop_id, service_id, barber_id, client_name, client_phone, start_time, end_time } = body
+    const { barbershop_id, service_id, barber_id, subscription_plan_id, client_name, client_phone, start_time, end_time } = body
 
     console.log("[v0] Dados recebidos:", { barbershop_id, service_id, barber_id, client_name, client_phone })
 
@@ -96,6 +96,7 @@ export async function POST(request: NextRequest) {
         client_id,
         service_id,
         barber_id: barber_id_to_use,
+        subscription_plan_id,
         start_time,
         end_time,
         duration_minutes: service.duration_minutes,
@@ -117,4 +118,5 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }
+
 

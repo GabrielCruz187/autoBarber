@@ -52,6 +52,7 @@ export function StepConfirmation({
           barbershop_id: booking.barbershopId,
           service_id: booking.serviceId,
           barber_id: booking.barberId === 'any' ? null : booking.barberId,
+          subscription_plan_id: booking.subscriptionPlanId,
           client_name: booking.clientName,
           client_phone: booking.clientPhone,
           start_time: startTime.toISOString(),
@@ -188,4 +189,6 @@ export function StepConfirmation({
     </div>
   )
 }
+
+
 

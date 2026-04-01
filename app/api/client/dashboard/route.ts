@@ -45,18 +45,24 @@ export async function GET(request: NextRequest) {
     }
 
     // Buscar agendamentos do cliente
-    const { data: appointments } = await supabase
+    const { data: appointments, error: appointmentsError } = await supabase
       .from('appointments')
       .select(`
         id,
-        date,
-        time,
+        start_time,
+        end_time,
         status,
-        services(name),
-        barbers(first_name, last_name)
+        service_id,
+        barber_id,
+        services!inner(name),
+        barbers!inner(first_name, last_name)
       `)
       .eq('client_id', clientId)
-      .order('date', { ascending: false })
+      .order('start_time', { ascending: false })
+
+    if (appointmentsError) {
+      console.log('[v0] Erro ao buscar agendamentos:', appointmentsError)
+    }
 
     // Buscar planos de assinatura visíveis da barbearia
     const { data: plans } = await supabase
@@ -74,8 +80,8 @@ export async function GET(request: NextRequest) {
       client,
       appointments: (appointments || []).map(apt => ({
         id: apt.id,
-        date: apt.date,
-        time: apt.time,
+        start_time: apt.start_time,
+        end_time: apt.end_time,
         status: apt.status,
         service_name: apt.services?.name || 'Serviço',
         barber_name: apt.barbers ? `${apt.barbers.first_name} ${apt.barbers.last_name}` : 'Barbeiro'

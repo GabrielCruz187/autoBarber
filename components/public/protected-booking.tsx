@@ -43,6 +43,20 @@ export function ProtectedBooking({ slug, children }: ProtectedBookingProps) {
     }
 
     checkAuth()
+    
+    // Setup event listener para recarregar agendamentos quando marcado novo
+    window.addEventListener('appointmentBooked', async () => {
+      const token = localStorage.getItem('clientToken')
+      const clientId = localStorage.getItem('clientId')
+      if (token && clientId) {
+        await loadDashboard(token, clientId)
+        setActiveTab('dashboard')
+      }
+    })
+
+    return () => {
+      window.removeEventListener('appointmentBooked', () => {})
+    }
   }, [])
 
   const loadDashboard = async (token: string, clientId: string) => {
@@ -161,7 +175,7 @@ export function ProtectedBooking({ slug, children }: ProtectedBookingProps) {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">
-                    {appointments?.filter(a => new Date(a.date) > new Date()).length || 0}
+                    {appointments?.filter(a => new Date(a.start_time) > new Date()).length || 0}
                   </div>
                 </CardContent>
               </Card>
@@ -172,7 +186,7 @@ export function ProtectedBooking({ slug, children }: ProtectedBookingProps) {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">
-                    {appointments?.filter(a => new Date(a.date) < new Date()).length || 0}
+                    {appointments?.filter(a => new Date(a.start_time) < new Date()).length || 0}
                   </div>
                 </CardContent>
               </Card>
@@ -202,11 +216,15 @@ export function ProtectedBooking({ slug, children }: ProtectedBookingProps) {
                         <div>
                           <p className="font-semibold">{apt.service_name}</p>
                           <p className="text-sm text-muted-foreground">
-                            {new Date(apt.date).toLocaleDateString('pt-BR')} às {apt.time}
+                            {new Date(apt.start_time).toLocaleDateString('pt-BR')} às{' '}
+                            {new Date(apt.start_time).toLocaleTimeString('pt-BR', {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
                           </p>
                         </div>
-                        <Badge variant={new Date(apt.date) > new Date() ? 'default' : 'secondary'}>
-                          {new Date(apt.date) > new Date() ? 'Próximo' : 'Finalizado'}
+                        <Badge variant={new Date(apt.start_time) > new Date() ? 'default' : 'secondary'}>
+                          {new Date(apt.start_time) > new Date() ? 'Próximo' : 'Finalizado'}
                         </Badge>
                       </div>
                     ))}
