@@ -8,12 +8,26 @@ import { CTASection } from "@/components/landing/cta-section"
 import { Footer } from "@/components/landing/footer"
 
 export default async function HomePage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  // Verificar se Supabase está configurado
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-  // If user is logged in, redirect to admin
-  if (user) {
-    redirect("/admin")
+  let user = null
+
+  // Só tentar fazer login se Supabase estiver configurado
+  if (supabaseUrl && supabaseKey) {
+    try {
+      const supabase = await createClient()
+      const { data: { user: authUser } } = await supabase.auth.getUser()
+      user = authUser
+
+      if (user) {
+        redirect("/admin")
+      }
+    } catch (error) {
+      console.error('[v0] Erro ao verificar autenticação:', error)
+      // Continuar sem erro se Supabase não estiver funcionando
+    }
   }
 
   return (
@@ -27,4 +41,6 @@ export default async function HomePage() {
     </div>
   )
 }
+
+
 
