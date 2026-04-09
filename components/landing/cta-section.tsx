@@ -40,7 +40,7 @@ export function CTASection() {
 
           {/* Description */}
           <p className="text-lg text-gray-300 max-w-xl mx-auto mb-8">
-            Junte-se a centenas de barbearias que já estão crescendo exponencialmente com BarberPro.
+            Junte-se a centenas de barbearias que já estão crescendo exponencialmente com BarberPro!
           </p>
 
           {/* Benefits list */}
