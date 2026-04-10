@@ -103,6 +103,7 @@ export function AppointmentDialog({
       service_id: formData.service_id,
       start_time: startTime.toISOString(),
       end_time: endTime.toISOString(),
+      duration_minutes: duration,
       status: formData.status,
       notes: formData.notes || null,
       total_price: selectedService?.price || 0,
