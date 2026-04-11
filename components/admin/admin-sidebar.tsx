@@ -22,6 +22,7 @@ import {
   Trophy,
   FileText,
   ChevronDown,
+  TrendingUp,
 } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
@@ -30,6 +31,7 @@ import { t } from "@/lib/i18n/useTranslation"
 const navigation = [
   { name: t.menu.dashboard, href: "/admin", icon: LayoutDashboard },
   { name: t.menu.agendamentos, href: "/admin/appointments", icon: Calendar },
+  { name: "Performance", href: "/admin/performance", icon: TrendingUp },
   { name: t.menu.barbeiros, href: "/admin/barbers", icon: Users },
   { name: t.menu.servicos, href: "/admin/services", icon: Briefcase },
   { name: t.menu.clientes, href: "/admin/clients", icon: UserCircle },

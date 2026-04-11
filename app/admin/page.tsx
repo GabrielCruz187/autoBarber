@@ -4,9 +4,10 @@ import { StatsCard } from "@/components/admin/stats-card"
 import { RecentAppointments } from "@/components/admin/recent-appointments"
 import { UpcomingAppointments } from "@/components/admin/upcoming-appointments"
 import { PublicPageLink } from "@/components/admin/public-page-link"
+import { DashboardMetrics } from "@/components/admin/dashboard/dashboard-metrics"
 import { Calendar, DollarSign, Users, Scissors } from "lucide-react"
 import type { Appointment } from "@/lib/types"
-import { getToday } from "@/lib/utils" // Declare the getToday variable
+import { getToday } from "@/lib/utils"
 
 export default async function AdminDashboard() {
   const supabase = await createClient()
@@ -116,27 +117,27 @@ export default async function AdminDashboard() {
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatsCard
-          title="Today's Appointments"
+          title="Agendamentos Hoje"
           value={todayAppointments || 0}
-          description="Scheduled for today"
+          description="Agendados para hoje"
           icon={Calendar}
         />
         <StatsCard
-          title="Week's Revenue"
-          value={`$${weekRevenue.toFixed(2)}`}
-          description="From completed appointments"
+          title="Faturamento da Semana"
+          value={`R$ ${weekRevenue.toFixed(2)}`}
+          description="De agendamentos finalizados"
           icon={DollarSign}
         />
         <StatsCard
-          title="Total Clients"
+          title="Total de Clientes"
           value={totalClients || 0}
-          description="Registered clients"
+          description="Clientes registrados"
           icon={Users}
         />
         <StatsCard
-          title="Active Barbers"
+          title="Barbeiros Ativos"
           value={activeBarbers || 0}
-          description="Available for booking"
+          description="Disponíveis para agendamento"
           icon={Scissors}
         />
       </div>
@@ -145,6 +146,8 @@ export default async function AdminDashboard() {
         <UpcomingAppointments appointments={(upcomingAppointments as Appointment[]) || []} />
         <RecentAppointments appointments={(recentAppointments as Appointment[]) || []} />
       </div>
+
+      <DashboardMetrics barbershopId={barbershop_id} />
     </div>
   )
 }
