@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
@@ -12,8 +12,9 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { ArrowLeft, Save, Plus } from 'lucide-react'
+import { ArrowLeft, Save, Loader2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { useToast } from '@/hooks/use-toast'
 
 interface ExpenseForm {
   title: string
@@ -60,6 +61,9 @@ const SUBCATEGORIES: Record<string, Array<{ id: string; name: string }>> = {
 
 export default function CriarDespesaPage() {
   const router = useRouter()
+  const { toast } = useToast()
+  const [barbershopId, setBarbershopId] = useState<string>('')
+  const [loading, setLoading] = useState(false)
   const [form, setForm] = useState<ExpenseForm>({
     title: '',
     description: '',
@@ -77,6 +81,22 @@ export default function CriarDespesaPage() {
     recurring: 'none',
   })
 
+  // Get barbershop_id from API
+  useEffect(() => {
+    const fetchBarbershopId = async () => {
+      try {
+        const response = await fetch('/api/admin/profile')
+        const data = await response.json()
+        if (data.barbershop_id) {
+          setBarbershopId(data.barbershop_id)
+        }
+      } catch (error) {
+        console.error('[v0] Erro ao buscar barbershop_id:', error)
+      }
+    }
+    fetchBarbershopId()
+  }, [])
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setForm(prev => ({ ...prev, [name]: value }))
@@ -93,14 +113,69 @@ export default function CriarDespesaPage() {
 
   const subcategories = SUBCATEGORIES[form.category] || []
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!form.title || !form.amount || !form.category || !form.dueDate) {
-      alert('Preencha todos os campos obrigatórios')
+      toast({
+        title: 'Erro',
+        description: 'Preencha todos os campos obrigatórios',
+        variant: 'destructive',
+      })
       return
     }
-    console.log('Despesa criada:', form, { finalAmount })
-    router.back()
+
+    if (!barbershopId) {
+      toast({
+        title: 'Erro',
+        description: 'Falha ao obter ID da barbearia',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    try {
+      setLoading(true)
+      const response = await fetch('/api/admin/despesas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          barbershop_id: barbershopId,
+          title: form.title,
+          description: form.description,
+          amount: parseFloat(form.amount),
+          category: form.category,
+          due_date: form.dueDate,
+          status: form.status,
+          payment_method: form.paymentMethod,
+          payment_date: form.paymentDate || null,
+          discount: parseFloat(form.discount) || 0,
+          interest: parseFloat(form.interest) || 0,
+          repeat_type: form.recurring,
+          notes: form.notes,
+        }),
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.message || 'Erro ao criar despesa')
+      }
+
+      toast({
+        title: 'Sucesso',
+        description: 'Despesa criada com sucesso',
+      })
+
+      router.push('/admin/financeiro/despesa')
+    } catch (error) {
+      console.error('[v0] Erro ao criar despesa:', error)
+      toast({
+        title: 'Erro',
+        description: error instanceof Error ? error.message : 'Falha ao criar despesa',
+        variant: 'destructive',
+      })
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -352,12 +427,13 @@ export default function CriarDespesaPage() {
           >
             Cancelar
           </Button>
-          <Button type="submit" className="gap-2 bg-green-600 hover:bg-green-700">
-            <Save className="h-4 w-4" />
-            Salvar Despesa
+          <Button type="submit" disabled={loading} className="gap-2 bg-green-600 hover:bg-green-700">
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+            {loading ? 'Salvando...' : 'Salvar Despesa'}
           </Button>
         </div>
       </form>
     </div>
   )
 }
+
