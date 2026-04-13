@@ -57,6 +57,11 @@ const assinaturasSubmenu = [
   { name: "Contratos ativos", href: "/admin/assinaturas/contratos-ativos" },
 ]
 
+const financeiroSubmenu = [
+  { name: "Comissões", href: "/admin/financeiro/comissoes" },
+  { name: "Despesas", href: "/admin/financeiro/despesa" },
+]
+
 interface AdminSidebarProps {
   barbershopName?: string
   userEmail?: string
@@ -67,6 +72,7 @@ export function AdminSidebar({ barbershopName = "BarberPro", userEmail }: AdminS
   const router = useRouter()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [assinaturasOpen, setAssinaturasOpen] = useState(pathname.startsWith("/admin/assinaturas"))
+  const [financeiroOpen, setFinanceiroOpen] = useState(pathname.startsWith("/admin/financeiro"))
 
   const handleSignOut = async () => {
     const supabase = createClient()
@@ -132,6 +138,51 @@ export function AdminSidebar({ barbershopName = "BarberPro", userEmail }: AdminS
             {assinaturasOpen && (
               <div className="space-y-1 pl-6">
                 {assinaturasSubmenu.map((item) => {
+                  const isActive = pathname === item.href
+                  return (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      onClick={() => setMobileOpen(false)}
+                      className={cn(
+                        "flex items-center gap-3 rounded-lg px-3 py-2 text-xs transition-colors whitespace-nowrap",
+                        isActive
+                          ? "bg-primary text-primary-foreground"
+                          : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                      )}
+                    >
+                      <span className="truncate">{item.name}</span>
+                    </Link>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Menu Expansível de Financeiro */}
+          <div className="mt-4 space-y-1">
+            <button
+              onClick={() => setFinanceiroOpen(!financeiroOpen)}
+              className={cn(
+                "w-full flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                financeiroOpen
+                  ? "bg-accent text-accent-foreground"
+                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+              )}
+            >
+              <FileText className="h-4 w-4 flex-shrink-0" />
+              <span className="truncate flex-1 text-left">Financeiro</span>
+              <ChevronDown 
+                className={cn(
+                  "h-4 w-4 transition-transform flex-shrink-0",
+                  financeiroOpen && "rotate-180"
+                )}
+              />
+            </button>
+
+            {financeiroOpen && (
+              <div className="space-y-1 pl-6">
+                {financeiroSubmenu.map((item) => {
                   const isActive = pathname === item.href
                   return (
                     <Link
