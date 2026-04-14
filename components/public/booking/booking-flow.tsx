@@ -62,11 +62,28 @@ export function BookingFlow({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-secondary/5">
-      <div className="max-w-2xl mx-auto px-4 py-8">
-        <BookingStepper currentStep={step} totalSteps={8} />
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="sticky top-0 z-10 bg-gray-700 text-white px-4 py-4">
+        <div className="flex items-center justify-between max-w-2xl mx-auto">
+          <button
+            onClick={() => step > 1 ? goToStep(step - 1) : window.history.back()}
+            className="text-2xl"
+          >
+            ←
+          </button>
+          <h1 className="text-lg font-semibold">Novo Agendamento</h1>
+          <div className="w-6" />
+        </div>
+      </div>
 
-        <div className="mt-8 animate-in fade-in-50 duration-300">
+      <div className="max-w-2xl mx-auto px-4 py-6">
+        {/* Subtitle */}
+        <div className="mb-8">
+          <p className="text-gray-600 text-sm">Selecione os detalhes do seu agendamento</p>
+        </div>
+
+        <div className="animate-in fade-in-50 duration-300">
           {step === 1 && (
             <StepServiceSelection
               services={services}
@@ -175,3 +192,4 @@ export function BookingFlow({
     </div>
   )
 }
+

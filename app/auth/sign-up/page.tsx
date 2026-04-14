@@ -61,16 +61,19 @@ export default function SignUpPage() {
           }),
         })
 
-        if (!response.ok) {
-          console.error('Failed to setup barbershop')
-          // Still redirect even if setup fails
+        if (response.ok) {
+          const barbershopData = await response.json()
+          const barbershopId = barbershopData.barbershop_id
+          // Redirect to checkout with barbershopId
+          router.push(`/checkout?barbershopId=${barbershopId}`)
+          return
         }
       } catch (err) {
         console.error('Error setting up barbershop:', err)
-        // Still redirect even if setup fails
       }
     }
 
+    // Fallback to sign-up-success if setup fails
     router.push("/auth/sign-up-success")
   }
 
@@ -173,3 +176,4 @@ export default function SignUpPage() {
     </div>
   )
 }
+
