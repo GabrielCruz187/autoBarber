@@ -140,6 +140,7 @@ export function ClientsClient({ clients, barbershopId }: ClientsClientProps) {
                 <TableRow>
                   <TableHead>Client</TableHead>
                   <TableHead>Contact</TableHead>
+                  <TableHead>Status</TableHead>
                   <TableHead>Visits</TableHead>
                   <TableHead>Total Spent</TableHead>
                   <TableHead>Joined</TableHead>
@@ -189,6 +190,31 @@ export function ClientsClient({ clients, barbershopId }: ClientsClientProps) {
                             <Phone className="h-3 w-3" />
                             <span>{client.phone}</span>
                           </div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col gap-1">
+                        {client.is_vip && (
+                          <Badge className="w-fit bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 hover:bg-yellow-100">
+                            <Star className="h-3 w-3 mr-1 fill-current" />
+                            VIP
+                          </Badge>
+                        )}
+                        {client.total_visits === 0 && (
+                          <Badge variant="secondary" className="w-fit">
+                            Novo
+                          </Badge>
+                        )}
+                        {client.total_visits > 0 && client.total_visits <= 3 && (
+                          <Badge className="w-fit bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 hover:bg-blue-100">
+                            Ativo
+                          </Badge>
+                        )}
+                        {client.total_visits > 3 && (
+                          <Badge className="w-fit bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 hover:bg-green-100">
+                            Frequente
+                          </Badge>
                         )}
                       </div>
                     </TableCell>

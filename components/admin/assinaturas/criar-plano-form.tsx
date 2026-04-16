@@ -16,6 +16,7 @@ export function CriarPlanoForm() {
     descricao: '',
     preco: '',
     frequencia: 'mensal',
+    color: '#7c3aed',
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -36,6 +37,7 @@ export function CriarPlanoForm() {
           descricao: formData.descricao,
           preco: parseFloat(formData.preco),
           frequencia: formData.frequencia,
+          color: formData.color,
         }),
       })
 
@@ -45,7 +47,7 @@ export function CriarPlanoForm() {
       }
 
       toast.success('Sucesso', { description: 'Plano criado com sucesso!' })
-      setFormData({ nome: '', descricao: '', preco: '', frequencia: 'mensal' })
+      setFormData({ nome: '', descricao: '', preco: '', frequencia: 'mensal', color: '#7c3aed' })
     } catch (error) {
       toast.error('Erro', { description: error instanceof Error ? error.message : 'Erro ao criar plano' })
     } finally {
@@ -110,6 +112,29 @@ export function CriarPlanoForm() {
           </div>
         </div>
 
+        <div>
+          <Label htmlFor="color">Cor do Plano</Label>
+          <div className="flex gap-2">
+            <Input
+              id="color"
+              type="color"
+              value={formData.color}
+              onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+              disabled={isLoading}
+              className="w-12 h-10 p-1 cursor-pointer"
+            />
+            <Input
+              type="text"
+              placeholder="#7c3aed"
+              value={formData.color}
+              onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+              disabled={isLoading}
+              className="flex-1"
+            />
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">Escolha uma cor para identificar este plano na agenda</p>
+        </div>
+
         <Button type="submit" disabled={isLoading} className="w-full">
           {isLoading ? 'Criando...' : 'Criar Plano'}
         </Button>
@@ -117,3 +142,4 @@ export function CriarPlanoForm() {
     </Card>
   )
 }
+
