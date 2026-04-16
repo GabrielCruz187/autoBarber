@@ -18,39 +18,38 @@ export function StepSuccess({ barbershopName, clientName }: StepSuccessProps) {
   }, [])
 
   return (
-    <div className="space-y-6 py-12 text-center">
-      <div className="flex justify-center animate-in fade-in-50 duration-300">
+    <div className="space-y-8 py-8 text-center">
+      <div className="flex justify-center animate-in fade-in-50 zoom-in duration-500">
         <div className="relative">
-          <div className="absolute inset-0 bg-green-500/20 rounded-full blur-xl" />
-          <CheckCircle2 className="w-24 h-24 text-green-500 relative animate-bounce" />
+          <div className="absolute inset-0 bg-green-500/30 rounded-full blur-2xl" />
+          <CheckCircle2 className="w-28 h-28 text-green-500 relative animate-bounce" />
         </div>
       </div>
 
-      <div className="space-y-2">
-        <h2 className="text-4xl font-bold">Agendamento Confirmado!</h2>
+      <div className="space-y-3">
+        <h2 className="text-4xl font-bold tracking-tight">Agendamento Confirmado!</h2>
         <p className="text-xl text-muted-foreground">
-          Obrigado, <span className="font-semibold text-foreground">{clientName}</span>!
+          Obrigado, <span className="font-bold text-foreground">{clientName}</span>! 🎉
         </p>
       </div>
 
-      <Card className="p-8 bg-green-50 border-green-200 space-y-4">
-        <p className="text-lg text-green-900">
-          Seu agendamento foi confirmado com sucesso em <span className="font-bold">{barbershopName}</span>.
+      <Card className="p-6 sm:p-8 bg-gradient-to-br from-green-50 to-green-50/50 border-2 border-green-200 dark:from-green-950/20 dark:to-green-950/10 dark:border-green-900 rounded-2xl space-y-4">
+        <p className="text-lg text-green-900 dark:text-green-100 font-semibold">
+          Seu agendamento foi confirmado com sucesso em <span className="font-bold">{barbershopName}</span>!
         </p>
-        <p className="text-green-800">
+        <p className="text-green-800 dark:text-green-200">
           Você receberá um SMS com os detalhes do agendamento. Se tiver dúvidas, entre em contato conosco pelo WhatsApp.
         </p>
       </Card>
 
-      <div className="space-y-3 pt-6">
-        <Button asChild size="lg" className="w-full">
+      <div className="space-y-4 pt-4">
+        <Button asChild size="lg" className="w-full h-12 rounded-xl text-base font-semibold">
           <Link href="/">Voltar ao Início</Link>
         </Button>
         <p className="text-sm text-muted-foreground">
-          Confira seu SMS para detalhes completos do agendamento
+          ✓ Confira seu SMS para detalhes completos do agendamento
         </p>
       </div>
     </div>
   )
 }
-

@@ -1,294 +1,199 @@
 "use client"
 
-import React from "react"
-
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { Loader2, Save } from "lucide-react"
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { ServiceDialog } from "@/components/admin/service-dialog"
+import { Plus, MoreVertical, Pencil, Trash2, Clock, DollarSign, Briefcase } from "lucide-react"
 import { toast } from "sonner"
-import type { Barbershop } from "@/lib/types"
+import type { Service } from "@/lib/types"
 
-interface SettingsClientProps {
-  barbershop: Barbershop
+interface ServicesClientProps {
+  services: Service[]
+  barbershopId: string
 }
 
-const timezones = [
-  { value: "America/New_York", label: "Eastern Time (ET)" },
-  { value: "America/Chicago", label: "Central Time (CT)" },
-  { value: "America/Denver", label: "Mountain Time (MT)" },
-  { value: "America/Los_Angeles", label: "Pacific Time (PT)" },
-  { value: "America/Phoenix", label: "Arizona (MST)" },
-  { value: "America/Anchorage", label: "Alaska (AKT)" },
-  { value: "Pacific/Honolulu", label: "Hawaii (HST)" },
-]
-
-const currencies = [
-  { value: "USD", label: "US Dollar ($)" },
-  { value: "EUR", label: "Euro (€)" },
-  { value: "GBP", label: "British Pound (£)" },
-  { value: "CAD", label: "Canadian Dollar (CA$)" },
-  { value: "AUD", label: "Australian Dollar (A$)" },
-]
-
-export function SettingsClient({ barbershop }: SettingsClientProps) {
+export function ServicesClient({ services, barbershopId }: ServicesClientProps) {
   const router = useRouter()
-  const [isLoading, setIsLoading] = useState(false)
-  const [formData, setFormData] = useState({
-    name: barbershop.name,
-    description: barbershop.description || "",
-    address: barbershop.address || "",
-    city: barbershop.city || "",
-    state: barbershop.state || "",
-    zip_code: barbershop.zip_code || "",
-    country: barbershop.country || "",
-    phone: barbershop.phone || "",
-    email: barbershop.email || "",
-    website: barbershop.website || "",
-    timezone: barbershop.timezone,
-    currency: barbershop.currency,
-  })
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [selectedService, setSelectedService] = useState<Service | null>(null)
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
+  const handleEdit = (service: Service) => {
+    setSelectedService(service)
+    setDialogOpen(true)
+  }
+
+  const handleDelete = async () => {
+    if (!selectedService) return
 
     const supabase = createClient()
-    
     const { error } = await supabase
-      .from("barbershops")
-      .update({
-        name: formData.name,
-        description: formData.description || null,
-        address: formData.address || null,
-        city: formData.city || null,
-        state: formData.state || null,
-        zip_code: formData.zip_code || null,
-        country: formData.country || null,
-        phone: formData.phone || null,
-        email: formData.email || null,
-        website: formData.website || null,
-        timezone: formData.timezone,
-        currency: formData.currency,
-      })
-      .eq("id", barbershop.id)
+      .from("services")
+      .delete()
+      .eq("id", selectedService.id)
 
     if (error) {
-      toast.error("Failed to update settings: " + error.message)
-      setIsLoading(false)
+      toast.error("Erro ao deletar serviço: " + error.message)
       return
     }
 
-    toast.success("Settings updated successfully")
-    setIsLoading(false)
+    toast.success("Serviço deletado com sucesso")
+    setDeleteDialogOpen(false)
+    setSelectedService(null)
     router.refresh()
   }
 
+  const handleDialogClose = (open: boolean) => {
+    setDialogOpen(open)
+    if (!open) setSelectedService(null)
+  }
+
+  // Group services by category
+  const groupedServices = services.reduce((acc, service) => {
+    const category = service.category || "Outros"
+    if (!acc[category]) acc[category] = []
+    acc[category].push(service)
+    return acc
+  }, {} as Record<string, Service[]>)
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
-        <p className="text-muted-foreground">Manage your barbershop settings and preferences</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Serviços</h1>
+          <p className="text-muted-foreground">Gerencie seu cardápio de serviços e preços</p>
+        </div>
+        <Button onClick={() => setDialogOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" />
+          Adicionar Serviço
+        </Button>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      {services.length === 0 ? (
         <Card>
-          <CardHeader>
-            <CardTitle>Business Information</CardTitle>
-            <CardDescription>Basic information about your barbershop</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Barbershop Name</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                required
-                disabled={isLoading}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Tell clients about your barbershop..."
-                disabled={isLoading}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone</Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  disabled={isLoading}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  disabled={isLoading}
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="website">Website</Label>
-              <Input
-                id="website"
-                type="url"
-                value={formData.website}
-                onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                placeholder="https://yourbarbershop.com"
-                disabled={isLoading}
-              />
-            </div>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <Briefcase className="h-12 w-12 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Nenhum serviço ainda</h3>
+            <p className="text-muted-foreground text-center mb-4">
+              Adicione serviços ao seu cardápio para que clientes possam agendar.
+            </p>
+            <Button onClick={() => setDialogOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Adicionar Primeiro Serviço
+            </Button>
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Location</CardTitle>
-            <CardDescription>Your barbershop address</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="address">Street Address</Label>
-              <Input
-                id="address"
-                value={formData.address}
-                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                disabled={isLoading}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="city">City</Label>
-                <Input
-                  id="city"
-                  value={formData.city}
-                  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                  disabled={isLoading}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="state">State/Province</Label>
-                <Input
-                  id="state"
-                  value={formData.state}
-                  onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                  disabled={isLoading}
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="zip_code">ZIP/Postal Code</Label>
-                <Input
-                  id="zip_code"
-                  value={formData.zip_code}
-                  onChange={(e) => setFormData({ ...formData, zip_code: e.target.value })}
-                  disabled={isLoading}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="country">Country</Label>
-                <Input
-                  id="country"
-                  value={formData.country}
-                  onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                  disabled={isLoading}
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Preferences</CardTitle>
-            <CardDescription>Regional and display settings</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="timezone">Timezone</Label>
-                <Select
-                  value={formData.timezone}
-                  onValueChange={(value) => setFormData({ ...formData, timezone: value })}
-                  disabled={isLoading}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {timezones.map((tz) => (
-                      <SelectItem key={tz.value} value={tz.value}>
-                        {tz.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="currency">Currency</Label>
-                <Select
-                  value={formData.currency}
-                  onValueChange={(value) => setFormData({ ...formData, currency: value })}
-                  disabled={isLoading}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {currencies.map((curr) => (
-                      <SelectItem key={curr.value} value={curr.value}>
-                        {curr.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+      ) : (
+        <div className="space-y-6">
+          {Object.entries(groupedServices).map(([category, categoryServices]) => (
+            <div key={category}>
+              <h2 className="text-lg font-semibold mb-3">{category}</h2>
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {categoryServices.map((service) => (
+                  <Card key={service.id}>
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <CardTitle className="text-base">{service.name}</CardTitle>
+                          <Badge variant={service.is_active ? "default" : "secondary"} className="mt-1">
+                            {service.is_active ? "Ativo" : "Inativo"}
+                          </Badge>
+                        </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <MoreVertical className="h-4 w-4" />
+                              <span className="sr-only">Ações</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleEdit(service)}>
+                              <Pencil className="mr-2 h-4 w-4" />
+                              Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setSelectedService(service)
+                                setDeleteDialogOpen(true)
+                              }}
+                              className="text-destructive focus:text-destructive"
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Deletar
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      {service.description && (
+                        <CardDescription className="line-clamp-2">
+                          {service.description}
+                        </CardDescription>
+                      )}
+                      <div className="flex items-center gap-4 pt-2">
+                        <div className="flex items-center gap-1 text-sm">
+                          <Clock className="h-4 w-4 text-muted-foreground" />
+                          <span>{service.duration_minutes} min</span>
+                        </div>
+                        <div className="flex items-center gap-1 text-sm font-semibold">
+                          <DollarSign className="h-4 w-4 text-muted-foreground" />
+                          <span>{service.price.toFixed(2)}</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
             </div>
-          </CardContent>
-        </Card>
-
-        <div className="flex justify-end">
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save className="mr-2 h-4 w-4" />
-                Save Changes
-              </>
-            )}
-          </Button>
+          ))}
         </div>
-      </form>
+      )}
+
+      <ServiceDialog
+        open={dialogOpen}
+        onOpenChange={handleDialogClose}
+        barbershopId={barbershopId}
+        service={selectedService}
+      />
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Deletar Serviço</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja deletar {"\""+selectedService?.name+"\""}? 
+              Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Deletar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

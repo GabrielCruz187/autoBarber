@@ -41,12 +41,12 @@ interface AppointmentDialogProps {
 }
 
 const statusOptions = [
-  { value: "pending", label: "Pending" },
-  { value: "confirmed", label: "Confirmed" },
-  { value: "in_progress", label: "In Progress" },
-  { value: "completed", label: "Completed" },
-  { value: "cancelled", label: "Cancelled" },
-  { value: "no_show", label: "No Show" },
+  { value: "pending", label: "Pendente" },
+  { value: "confirmed", label: "Confirmado" },
+  { value: "in_progress", label: "Em Andamento" },
+  { value: "completed", label: "Concluído" },
+  { value: "cancelled", label: "Cancelado" },
+  { value: "no_show", label: "Não Compareceu" },
 ]
 
 export function AppointmentDialog({
@@ -116,22 +116,22 @@ export function AppointmentDialog({
         .eq("id", appointment.id)
 
       if (error) {
-        toast.error("Failed to update appointment: " + error.message)
+        toast.error("Erro ao atualizar agendamento: " + error.message)
         setIsLoading(false)
         return
       }
-      toast.success("Appointment updated successfully")
+      toast.success("Agendamento atualizado com sucesso")
     } else {
       const { error } = await supabase
         .from("appointments")
         .insert(appointmentData)
 
       if (error) {
-        toast.error("Failed to create appointment: " + error.message)
+        toast.error("Erro ao criar agendamento: " + error.message)
         setIsLoading(false)
         return
       }
-      toast.success("Appointment created successfully")
+      toast.success("Agendamento criado com sucesso")
     }
 
     setIsLoading(false)
@@ -151,22 +151,22 @@ export function AppointmentDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>{appointment ? "Edit Appointment" : "New Appointment"}</DialogTitle>
+          <DialogTitle>{appointment ? "Editar Agendamento" : "Novo Agendamento"}</DialogTitle>
           <DialogDescription>
-            {appointment ? "Update the appointment details." : "Schedule a new appointment."}
+            {appointment ? "Atualize os detalhes do agendamento." : "Agende um novo agendamento."}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="client_id">Client</Label>
+              <Label htmlFor="client_id">Cliente</Label>
               <Select
                 value={formData.client_id}
                 onValueChange={(value) => setFormData({ ...formData, client_id: value })}
                 disabled={isLoading}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select a client" />
+                  <SelectValue placeholder="Selecione um cliente" />
                 </SelectTrigger>
                 <SelectContent>
                   {clients.map((client) => (
@@ -179,14 +179,14 @@ export function AppointmentDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="barber_id">Barber</Label>
+              <Label htmlFor="barber_id">Barbeiro</Label>
               <Select
                 value={formData.barber_id}
                 onValueChange={(value) => setFormData({ ...formData, barber_id: value })}
                 disabled={isLoading}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select a barber" />
+                  <SelectValue placeholder="Selecione um barbeiro" />
                 </SelectTrigger>
                 <SelectContent>
                   {barbers.filter(b => b.is_active).map((barber) => (
@@ -199,19 +199,19 @@ export function AppointmentDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="service_id">Service</Label>
+              <Label htmlFor="service_id">Serviço</Label>
               <Select
                 value={formData.service_id}
                 onValueChange={(value) => setFormData({ ...formData, service_id: value })}
                 disabled={isLoading}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select a service" />
+                  <SelectValue placeholder="Selecione um serviço" />
                 </SelectTrigger>
                 <SelectContent>
                   {services.filter(s => s.is_active).map((service) => (
                     <SelectItem key={service.id} value={service.id}>
-                      {service.name} - ${service.price} ({service.duration_minutes} min)
+                      {service.name} - R$ {service.price} ({service.duration_minutes} min)
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -220,7 +220,7 @@ export function AppointmentDialog({
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="date">Date</Label>
+                <Label htmlFor="date">Data</Label>
                 <Input
                   id="date"
                   type="date"
@@ -231,7 +231,7 @@ export function AppointmentDialog({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="time">Time</Label>
+                <Label htmlFor="time">Horário</Label>
                 <Select
                   value={formData.time}
                   onValueChange={(value) => setFormData({ ...formData, time: value })}
@@ -307,3 +307,4 @@ export function AppointmentDialog({
     </Dialog>
   )
 }
+

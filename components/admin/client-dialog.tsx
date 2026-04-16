@@ -50,6 +50,7 @@ export function ClientDialog({ open, onOpenChange, barbershopId, client }: Clien
     last_name: client?.last_name || "",
     email: client?.email || "",
     phone: client?.phone || "",
+    cpf: client?.cpf || "",
     notes: client?.notes || "",
     is_vip: client?.is_vip || false,
   })
@@ -114,6 +115,7 @@ export function ClientDialog({ open, onOpenChange, barbershopId, client }: Clien
       last_name: formData.last_name,
       email: formData.email || null,
       phone: formData.phone || null,
+      cpf: formData.cpf || null,
       notes: formData.notes || null,
       is_vip: formData.is_vip,
     }
@@ -152,12 +154,26 @@ export function ClientDialog({ open, onOpenChange, barbershopId, client }: Clien
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>{client ? "Edit Client" : "Add New Client"}</DialogTitle>
+          <DialogTitle>{client ? "Editar Cliente" : "Adicionar Novo Cliente"}</DialogTitle>
           <DialogDescription>
-            {client ? "Update the client's information." : "Add a new client to your database."}
+            {client ? "Atualize as informações do cliente." : "Adicione um novo cliente ao seu banco de dados."}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
+          {/* Client CPF Info - Show at top */}
+          {client && (
+            <div className="mb-6 p-4 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
+              <p className="text-xs text-muted-foreground mb-1">CPF</p>
+              <p className="font-mono font-semibold text-lg">
+                {client.cpf ? (
+                  client.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
+                ) : (
+                  <span className="text-muted-foreground italic">Não informado</span>
+                )}
+              </p>
+            </div>
+          )}
+
           {/* Metrics Section - Only show when editing existing client */}
           {client && metrics && (
             <div className="mb-6 grid grid-cols-2 gap-3">
@@ -252,7 +268,7 @@ export function ClientDialog({ open, onOpenChange, barbershopId, client }: Clien
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="phone">Phone</Label>
+                <Label htmlFor="phone">Telefone</Label>
                 <Input
                   id="phone"
                   type="tel"
@@ -263,7 +279,23 @@ export function ClientDialog({ open, onOpenChange, barbershopId, client }: Clien
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="notes">Notes</Label>
+              <Label htmlFor="cpf">CPF</Label>
+              <Input
+                id="cpf"
+                type="text"
+                value={formData.cpf}
+                onChange={(e) => {
+                  let value = e.target.value.replace(/\D/g, '')
+                  if (value.length > 11) value = value.slice(0, 11)
+                  setFormData({ ...formData, cpf: value })
+                }}
+                placeholder="00000000000"
+                disabled={isLoading}
+              />
+              <p className="text-xs text-muted-foreground">Apenas números, sem pontuação</p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="notes">Notas</Label>
               <Textarea
                 id="notes"
                 value={formData.notes}
@@ -302,4 +334,5 @@ export function ClientDialog({ open, onOpenChange, barbershopId, client }: Clien
     </Dialog>
   )
 }
+
 

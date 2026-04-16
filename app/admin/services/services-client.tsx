@@ -53,11 +53,11 @@ export function ServicesClient({ services, barbershopId }: ServicesClientProps) 
       .eq("id", selectedService.id)
 
     if (error) {
-      toast.error("Failed to delete service: " + error.message)
+      toast.error("Erro ao deletar serviço: " + error.message)
       return
     }
 
-    toast.success("Service deleted successfully")
+    toast.success("Serviço deletado com sucesso")
     setDeleteDialogOpen(false)
     setSelectedService(null)
     router.refresh()
@@ -70,7 +70,7 @@ export function ServicesClient({ services, barbershopId }: ServicesClientProps) 
 
   // Group services by category
   const groupedServices = services.reduce((acc, service) => {
-    const category = service.category || "Other"
+    const category = service.category || "Outros"
     if (!acc[category]) acc[category] = []
     acc[category].push(service)
     return acc
@@ -80,12 +80,12 @@ export function ServicesClient({ services, barbershopId }: ServicesClientProps) 
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Services</h1>
-          <p className="text-muted-foreground">Manage your service menu and pricing</p>
+          <h1 className="text-2xl font-bold tracking-tight">Serviços</h1>
+          <p className="text-muted-foreground">Gerencie seu cardápio de serviços e preços</p>
         </div>
         <Button onClick={() => setDialogOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
-          Add Service
+          Adicionar Serviço
         </Button>
       </div>
 
@@ -93,13 +93,13 @@ export function ServicesClient({ services, barbershopId }: ServicesClientProps) 
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Briefcase className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No services yet</h3>
+            <h3 className="text-lg font-semibold mb-2">Nenhum serviço ainda</h3>
             <p className="text-muted-foreground text-center mb-4">
-              Add services to your menu so clients can book appointments.
+              Adicione serviços ao seu cardápio para que clientes possam agendar.
             </p>
             <Button onClick={() => setDialogOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
-              Add Your First Service
+              Adicionar Primeiro Serviço
             </Button>
           </CardContent>
         </Card>
@@ -116,20 +116,20 @@ export function ServicesClient({ services, barbershopId }: ServicesClientProps) 
                         <div>
                           <CardTitle className="text-base">{service.name}</CardTitle>
                           <Badge variant={service.is_active ? "default" : "secondary"} className="mt-1">
-                            {service.is_active ? "Active" : "Inactive"}
+                            {service.is_active ? "Ativo" : "Inativo"}
                           </Badge>
                         </div>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon">
                               <MoreVertical className="h-4 w-4" />
-                              <span className="sr-only">Actions</span>
+                              <span className="sr-only">Ações</span>
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem onClick={() => handleEdit(service)}>
                               <Pencil className="mr-2 h-4 w-4" />
-                              Edit
+                              Editar
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => {
@@ -139,7 +139,7 @@ export function ServicesClient({ services, barbershopId }: ServicesClientProps) 
                               className="text-destructive focus:text-destructive"
                             >
                               <Trash2 className="mr-2 h-4 w-4" />
-                              Delete
+                              Deletar
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -180,16 +180,16 @@ export function ServicesClient({ services, barbershopId }: ServicesClientProps) 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Service</AlertDialogTitle>
+            <AlertDialogTitle>Deletar Serviço</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete {"\""+selectedService?.name+"\""}? 
-              This action cannot be undone.
+              Tem certeza que deseja deletar {"\""+selectedService?.name+"\""}? 
+              Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Delete
+              Deletar
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -197,3 +197,4 @@ export function ServicesClient({ services, barbershopId }: ServicesClientProps) 
     </div>
   )
 }
+

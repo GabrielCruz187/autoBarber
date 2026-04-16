@@ -94,92 +94,97 @@ export function StepConfirmation({
         </div>
       </div>
 
-      <Card className="p-8 space-y-6">
+      <Card className="p-6 sm:p-8 space-y-6 border-2 border-muted/30 rounded-2xl bg-card/50">
         {/* Serviço */}
-        <div>
-          <p className="text-sm text-muted-foreground font-semibold uppercase">
-            Serviço
+        <div className="space-y-3 pb-6 border-b-2 border-muted/20">
+          <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide">
+            Serviço Selecionado
           </p>
-          <p className="text-xl font-bold mt-2">{service?.name}</p>
-          <p className="text-sm text-muted-foreground mt-1">
-            {service?.duration_minutes} minutos - R$ {(service?.price / 100).toFixed(2)}
-          </p>
+          <div className="flex items-end justify-between">
+            <div>
+              <p className="text-2xl font-bold text-foreground">{service?.name}</p>
+              <p className="text-sm text-muted-foreground mt-1 flex gap-2">
+                <span>{service?.duration_minutes} min</span>
+              </p>
+            </div>
+            <p className="text-xl font-bold text-primary">R$ {(service?.price / 100).toFixed(2)}</p>
+          </div>
         </div>
 
-        <Separator />
-
         {/* Barbeiro */}
-        <div>
-          <p className="text-sm text-muted-foreground font-semibold uppercase">
+        <div className="space-y-3 pb-6 border-b-2 border-muted/20">
+          <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide">
             Profissional
           </p>
-          <p className="text-xl font-bold mt-2">
+          <p className="text-lg font-bold text-foreground">
             {barber
               ? `${barber.first_name} ${barber.last_name}`
               : 'Qualquer Profissional Disponível'}
           </p>
         </div>
 
-        <Separator />
-
         {/* Data e Hora */}
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <p className="text-sm text-muted-foreground font-semibold uppercase">
+        <div className="grid grid-cols-2 gap-4 pb-6 border-b-2 border-muted/20">
+          <div className="space-y-2">
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide">
               Data
             </p>
-            <p className="text-lg font-bold mt-2">
-              {booking.date?.toLocaleDateString('pt-BR')}
+            <p className="text-lg font-bold text-foreground">
+              {booking.date?.toLocaleDateString('pt-BR', {
+                weekday: 'short',
+                month: 'short',
+                day: '2-digit',
+              })}
             </p>
           </div>
-          <div>
-            <p className="text-sm text-muted-foreground font-semibold uppercase">
+          <div className="space-y-2">
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide">
               Horário
             </p>
-            <p className="text-lg font-bold mt-2">{booking.time}</p>
+            <p className="text-lg font-bold text-foreground">{booking.time}</p>
           </div>
         </div>
 
-        <Separator />
-
         {/* Cliente */}
-        <div>
-          <p className="text-sm text-muted-foreground font-semibold uppercase">
-            Dados do Cliente
+        <div className="space-y-3 pb-6 border-b-2 border-muted/20">
+          <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide">
+            Seus Dados
           </p>
-          <div className="mt-2 space-y-2">
-            <p className="text-lg font-semibold">{booking.clientName}</p>
-            <p className="text-sm text-muted-foreground">{booking.clientPhone}</p>
+          <div className="space-y-2">
+            <p className="text-lg font-semibold text-foreground">{booking.clientName}</p>
+            <p className="text-sm text-muted-foreground flex items-center gap-2">
+              📱 {booking.clientPhone}
+            </p>
             {booking.clientEmail && (
-              <p className="text-sm text-muted-foreground">{booking.clientEmail}</p>
+              <p className="text-sm text-muted-foreground flex items-center gap-2">
+                ✉️ {booking.clientEmail}
+              </p>
             )}
           </div>
         </div>
 
-        <Separator />
-
         {/* Total */}
-        <div className="flex items-center justify-between pt-4">
-          <p className="text-lg font-semibold">Total:</p>
+        <div className="flex items-center justify-between pt-4 bg-primary/5 p-4 rounded-xl border-2 border-primary/20">
+          <p className="text-lg font-bold text-foreground">Total</p>
           <p className="text-3xl font-bold text-primary">
             R$ {(service?.price / 100).toFixed(2)}
           </p>
         </div>
       </Card>
 
-      <div className="flex gap-3">
+      <div className="flex gap-3 pt-2">
         <Button
           variant="outline"
           onClick={onBack}
           disabled={isLoading}
-          className="flex-1"
+          className="flex-1 h-12 rounded-xl text-base font-semibold"
         >
           Voltar
         </Button>
         <Button
           onClick={handleConfirm}
           disabled={isLoading}
-          className="flex-1"
+          className="flex-1 h-12 rounded-xl text-base font-semibold"
           size="lg"
         >
           {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}

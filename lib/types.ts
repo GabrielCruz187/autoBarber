@@ -74,6 +74,7 @@ export interface Client {
   last_name: string
   email: string | null
   phone: string | null
+  cpf: string | null
   avatar_url: string | null
   notes: string | null
   is_vip: boolean

@@ -86,7 +86,8 @@ export function ClientsClient({ clients, barbershopId }: ClientsClientProps) {
       client.first_name.toLowerCase().includes(searchLower) ||
       client.last_name.toLowerCase().includes(searchLower) ||
       client.email?.toLowerCase().includes(searchLower) ||
-      client.phone?.includes(searchQuery)
+      client.phone?.includes(searchQuery) ||
+      client.cpf?.includes(searchQuery)
     )
   })
 
@@ -139,6 +140,7 @@ export function ClientsClient({ clients, barbershopId }: ClientsClientProps) {
               <TableHeader>
                 <TableRow>
                   <TableHead>Client</TableHead>
+                  <TableHead>CPF</TableHead>
                   <TableHead>Contact</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Visits</TableHead>
@@ -176,6 +178,15 @@ export function ClientsClient({ clients, barbershopId }: ClientsClientProps) {
                           )}
                         </div>
                       </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-sm font-mono">
+                        {client.cpf ? (
+                          client.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
+                        ) : (
+                          <span className="text-muted-foreground italic">Não informado</span>
+                        )}
+                      </span>
                     </TableCell>
                     <TableCell>
                       <div className="space-y-1">
@@ -288,3 +299,4 @@ export function ClientsClient({ clients, barbershopId }: ClientsClientProps) {
     </div>
   )
 }
+

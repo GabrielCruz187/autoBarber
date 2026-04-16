@@ -54,11 +54,11 @@ export function BarbersClient({ barbers, barbershopId }: BarbersClientProps) {
       .eq("id", selectedBarber.id)
 
     if (error) {
-      toast.error("Failed to delete barber: " + error.message)
+      toast.error("Erro ao deletar barbeiro: " + error.message)
       return
     }
 
-    toast.success("Barber deleted successfully")
+    toast.success("Barbeiro deletado com sucesso")
     setDeleteDialogOpen(false)
     setSelectedBarber(null)
     router.refresh()
@@ -73,12 +73,12 @@ export function BarbersClient({ barbers, barbershopId }: BarbersClientProps) {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Barbers</h1>
-          <p className="text-muted-foreground">Manage your barbershop team</p>
+          <h1 className="text-2xl font-bold tracking-tight">Barbeiros</h1>
+          <p className="text-muted-foreground">Gerencie sua equipe de barbearia</p>
         </div>
         <Button onClick={() => setDialogOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
-          Add Barber
+          Novo Barbeiro
         </Button>
       </div>
 

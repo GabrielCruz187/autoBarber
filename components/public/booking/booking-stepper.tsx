@@ -22,36 +22,36 @@ export function BookingStepper({
   ]
 
   return (
-    <div className="w-full">
+    <div className="w-full py-4">
       <div className="flex items-center justify-between">
         {steps.map((step, index) => (
           <div key={index} className="flex items-center flex-1">
             <div className="flex flex-col items-center flex-1">
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all duration-300 ${
+                className={`w-9 h-9 rounded-full flex items-center justify-center font-semibold text-sm transition-all duration-300 border-2 ${
                   index + 1 < currentStep
-                    ? 'bg-green-500 text-white'
+                    ? 'bg-green-500 border-green-500 text-white'
                     : index + 1 === currentStep
-                    ? 'bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2'
-                    : 'bg-muted text-muted-foreground'
+                    ? 'bg-primary border-primary text-primary-foreground ring-2 ring-primary ring-offset-2 scale-110'
+                    : 'bg-muted border-muted text-muted-foreground'
                 }`}
               >
                 {index + 1 < currentStep ? (
-                  <Check className="w-4 h-4" />
+                  <Check className="w-5 h-5" />
                 ) : (
                   index + 1
                 )}
               </div>
-              <span className={`text-xs mt-2 text-center transition-colors duration-300 ${
+              <span className={`text-xs mt-2 text-center transition-colors duration-300 font-semibold max-w-12 ${
                 index + 1 <= currentStep
-                  ? 'text-foreground font-semibold'
+                  ? 'text-foreground'
                   : 'text-muted-foreground'
               }`}>
                 {step}
               </span>
             </div>
             {index < steps.length - 1 && (
-              <div className={`h-1 flex-1 mx-1 rounded-full transition-all duration-300 ${
+              <div className={`h-0.5 flex-1 mx-1.5 rounded-full transition-all duration-300 ${
                 index + 1 < currentStep ? 'bg-green-500' : 'bg-muted'
               }`} />
             )}
