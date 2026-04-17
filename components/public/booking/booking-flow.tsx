@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { BookingStepper } from './booking-stepper'
 import { StepServiceSelection } from './step-service-selection'
 import { StepBarberSelection } from './step-barber-selection'
@@ -11,6 +11,8 @@ import { StepClientInfo } from './step-client-info'
 import { StepConfirmation } from './step-confirmation'
 import { StepSuccess } from './step-success'
 import { SubscriptionPlansSection } from '../subscription-plans-section'
+import { createClient } from '@/lib/supabase/client'
+import { Loader2 } from 'lucide-react'
 
 export interface BookingState {
   serviceId: string | null
@@ -40,6 +42,11 @@ export function BookingFlow({
   subscriptionPlans = [],
 }: BookingFlowProps) {
   const [step, setStep] = useState(1)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isLoadingAuth, setIsLoadingAuth] = useState(true)
+  const [userEmail, setUserEmail] = useState('')
+  const [userName, setUserName] = useState('')
+  const [userPhone, setUserPhone] = useState('')
   const [booking, setBooking] = useState<BookingState>({
     serviceId: null,
     barberId: null,
@@ -52,6 +59,39 @@ export function BookingFlow({
     barbershopId: barbershopId,
   })
 
+  // Verificar autenticação ao montar o componente
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const supabase = createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        
+        if (user) {
+          setIsAuthenticated(true)
+          setUserEmail(user.email || '')
+          setUserName(user.user_metadata?.name || user.email?.split('@')[0] || '')
+          setUserPhone(user.user_metadata?.phone || '')
+          
+          // Pre-preencher dados no booking state
+          setBooking(prev => ({
+            ...prev,
+            clientName: user.user_metadata?.name || user.email?.split('@')[0] || '',
+            clientEmail: user.email || '',
+            clientPhone: user.user_metadata?.phone || '',
+          }))
+          
+          console.log("[v0] Usuário autenticado:", user.email)
+        }
+      } catch (error) {
+        console.error("[v0] Erro ao verificar autenticação:", error)
+      } finally {
+        setIsLoadingAuth(false)
+      }
+    }
+
+    checkAuth()
+  }, [])
+
   const updateBooking = (updates: Partial<BookingState>) => {
     setBooking(prev => ({ ...prev, ...updates }))
   }
@@ -61,29 +101,26 @@ export function BookingFlow({
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-gray-700 text-white px-4 py-4">
-        <div className="flex items-center justify-between max-w-2xl mx-auto">
-          <button
-            onClick={() => step > 1 ? goToStep(step - 1) : window.history.back()}
-            className="text-2xl"
-          >
-            ←
-          </button>
-          <h1 className="text-lg font-semibold">Novo Agendamento</h1>
-          <div className="w-6" />
+  // Calcular total de steps (5 se autenticado, 6 se não)
+  const totalSteps = isAuthenticated ? 7 : 8
+
+  if (isLoadingAuth) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background to-secondary/5 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Verificando autenticação...</p>
         </div>
       </div>
+    )
+  }
 
-      <div className="max-w-2xl mx-auto px-4 py-6">
-        {/* Subtitle */}
-        <div className="mb-8">
-          <p className="text-gray-600 text-sm">Selecione os detalhes do seu agendamento</p>
-        </div>
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-background to-secondary/5">
+      <div className="max-w-2xl mx-auto px-4 py-8">
+        <BookingStepper currentStep={step} totalSteps={totalSteps} />
 
-        <div className="animate-in fade-in-50 duration-300">
+        <div className="mt-8 animate-in fade-in-50 duration-300">
           {step === 1 && (
             <StepServiceSelection
               services={services}
@@ -139,13 +176,14 @@ export function BookingFlow({
               selectedPlan={booking.subscriptionPlanId}
               onSelect={(planId) => {
                 updateBooking({ subscriptionPlanId: planId })
-                goToStep(6)
+                // Pular para confirmação se autenticado, ou para dados do cliente
+                goToStep(isAuthenticated ? 7 : 6)
               }}
               onBack={() => goToStep(4)}
             />
           )}
 
-          {step === 6 && (
+          {step === 6 && !isAuthenticated && (
             <StepClientInfo
               clientData={{
                 name: booking.clientName,
@@ -169,12 +207,13 @@ export function BookingFlow({
               booking={booking}
               services={services}
               barbers={barbers}
-              onConfirm={() => goToStep(8)}
-              onBack={() => goToStep(6)}
+              isUserAuthenticated={isAuthenticated}
+              onConfirm={() => goToStep(totalSteps)}
+              onBack={() => goToStep(isAuthenticated ? 5 : 6)}
             />
           )}
 
-          {step === 8 && (
+          {step === totalSteps && (
             <StepSuccess
               barbershopName={barbershopName}
               clientName={booking.clientName}
@@ -192,4 +231,5 @@ export function BookingFlow({
     </div>
   )
 }
+
 

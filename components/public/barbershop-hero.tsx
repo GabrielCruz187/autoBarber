@@ -130,3 +130,4 @@ export function BarbershopHero({ barbershop }: BarbershopHeroProps) {
     </div>
   )
 }
+

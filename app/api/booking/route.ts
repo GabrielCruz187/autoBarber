@@ -14,11 +14,12 @@ export async function POST(request: NextRequest) {
 
     const supabase = await createClient()
     const body = await request.json()
-    const { barbershop_id, service_id, barber_id, subscription_plan_id, client_name, client_phone, start_time, end_time } = body
+    const { barbershop_id, service_id, barber_id, subscription_plan_id, client_name, client_phone, client_email, start_time, end_time } = body
 
-    console.log("[v0] Dados recebidos:", { barbershop_id, service_id, barber_id, client_name, client_phone })
+    console.log("[v0] Dados recebidos:", { barbershop_id, service_id, barber_id, client_name, client_phone, client_email })
 
     if (!barbershop_id || !service_id || !start_time || !client_name || !client_phone) {
+      console.error("[v0] Dados incompletos recebidos")
       return NextResponse.json({ error: "Dados incompletos" }, { status: 400 })
     }
 
@@ -37,17 +38,40 @@ export async function POST(request: NextRequest) {
 
     console.log("[v0] Serviço encontrado:", service)
 
-    // Verificar se existe cliente, se não, criar
-    const { data: existingClient } = await supabase
-      .from("clients")
-      .select("id")
-      .eq("barbershop_id", barbershop_id)
+    // UPSERT: Tentar buscar cliente existente por phone OU email (Find or Create)
+    let client_id: string | null = null
+    let searchFilter = 
+      supabase
+        .from("clients")
+        .select("id")
+        .eq("barbershop_id", barbershop_id)
+
+    // Buscar por phone primeiro (mais confiável)
+    let { data: existingClient, error: searchError } = await searchFilter
       .eq("phone", client_phone)
       .single()
 
-    let client_id = existingClient?.id
+    // Se não encontrou por phone, buscar por email (se fornecido)
+    if (!existingClient && client_email) {
+      console.log("[v0] Não encontrou por phone, buscando por email:", client_email)
+      const { data: clientByEmail } = await supabase
+        .from("clients")
+        .select("id")
+        .eq("barbershop_id", barbershop_id)
+        .eq("email", client_email)
+        .single()
+      
+      if (clientByEmail) {
+        existingClient = clientByEmail
+        console.log("[v0] Cliente encontrado por email:", clientByEmail.id)
+      }
+    }
 
-    if (!client_id) {
+    if (existingClient?.id) {
+      client_id = existingClient.id
+      console.log("[v0] Cliente existente encontrado, reutilizando:", client_id)
+    } else {
+      // Cliente não existe, criar novo
       const { data: newClient, error: clientError } = await supabase
         .from("clients")
         .insert({
@@ -55,16 +79,17 @@ export async function POST(request: NextRequest) {
           first_name: client_name,
           last_name: "",
           phone: client_phone,
+          email: client_email || null,
         })
-        .select()
+        .select("id")
         .single()
 
       if (clientError || !newClient) {
-        console.error("[v0] Erro ao criar cliente:", clientError)
+        console.error("[v0] Erro ao criar cliente:", clientError?.message)
         return NextResponse.json({ error: "Erro ao criar cliente" }, { status: 500 })
       }
       client_id = newClient.id
-      console.log("[v0] Cliente criado:", client_id)
+      console.log("[v0] Novo cliente criado com ID:", client_id)
     }
 
     // Se barber_id não foi fornecido, tentar obter o primeiro barbeiro disponível
@@ -82,7 +107,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "Nenhum barbeiro disponível" }, { status: 400 })
       }
       barber_id_to_use = barbers[0].id
-      console.log("[v0] Barbeiro selecionado:", barber_id_to_use)
+      console.log("[v0] Barbeiro selecionado automaticamente:", barber_id_to_use)
     }
 
     // Calcular preço total (convertendo de centavos se necessário)
@@ -107,16 +132,17 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (appointmentError) {
-      console.error("[v0] Erro ao criar agendamento:", appointmentError)
-      return NextResponse.json({ error: `Erro ao criar agendamento: ${appointmentError.message}` }, { status: 500 })
+      console.error("[v0] Erro ao criar agendamento:", appointmentError?.message)
+      return NextResponse.json({ error: `Erro ao criar agendamento: ${appointmentError?.message}` }, { status: 500 })
     }
 
-    console.log("[v0] Agendamento criado com sucesso:", appointment.id)
+    console.log("[v0] Agendamento criado com sucesso:", appointment.id, "para cliente:", client_id)
     return NextResponse.json({ appointment }, { status: 201 })
   } catch (error) {
-    console.error("[v0] Erro na API de booking:", error)
+    console.error("[v0] Erro na API de booking:", error instanceof Error ? error.message : error)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }
+
 
 

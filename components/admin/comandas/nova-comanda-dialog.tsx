@@ -19,8 +19,16 @@ export function NovaComandaDialog({ clientes }: NovaComandaDialogProps) {
   const [open, setOpen] = useState(false)
   const [clienteId, setClienteId] = useState('')
   const [observacoes, setObservacoes] = useState('')
+  const [total, setTotal] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const [descricao, setDescricao] = useState('')
+
+  const handleTotalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    // Permitir apenas números e um ponto decimal
+    if (/^\d*\.?\d*$/.test(value)) {
+      setTotal(value)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -30,29 +38,47 @@ export function NovaComandaDialog({ clientes }: NovaComandaDialogProps) {
       return
     }
 
+    if (!total || parseFloat(total) <= 0) {
+      toast.error(t.common.erro, { description: 'Insira um valor maior que zero' })
+      return
+    }
+
     setIsLoading(true)
     try {
+      const totalAmount = parseFloat(total)
+      
       const response = await fetch('/api/admin/comandas', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           cliente_id: clienteId || null,
           observacoes: observacoes || null,
+          total: totalAmount,
         }),
       })
 
       if (!response.ok) throw new Error('Erro ao criar comanda')
 
-      toast.success(t.common.sucesso, { description: 'Comanda criada com sucesso!' })
+      toast.success(t.common.sucesso, { 
+        description: `Comanda criada! Valor: R$ ${totalAmount.toFixed(2)}` 
+      })
       setOpen(false)
       setClienteId('')
       setObservacoes('')
+      setTotal('')
     } catch (error) {
+      console.error('[v0] Erro ao criar comanda:', error)
       toast.error(t.common.erro, { description: 'Erro ao criar comanda' })
     } finally {
       setIsLoading(false)
     }
   }
+
+  const totalValue = total ? parseFloat(total) : 0
+  const formattedTotal = totalValue.toLocaleString('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -75,6 +101,7 @@ export function NovaComandaDialog({ clientes }: NovaComandaDialogProps) {
               value={clienteId}
               onChange={(e) => setClienteId(e.target.value)}
               className="w-full rounded-md border border-input bg-background px-3 py-2"
+              disabled={isLoading}
             >
               <option value="">{t.common.semCliente}</option>
               {clientes.map((cliente) => (
@@ -86,12 +113,31 @@ export function NovaComandaDialog({ clientes }: NovaComandaDialogProps) {
           </div>
 
           <div>
+            <Label htmlFor="total">Valor Total (R$) *</Label>
+            <Input
+              id="total"
+              type="text"
+              placeholder="0,00"
+              value={total}
+              onChange={handleTotalChange}
+              disabled={isLoading}
+              className="text-base"
+            />
+            {total && totalValue > 0 && (
+              <p className="text-sm text-muted-foreground mt-1">
+                Valor: <span className="font-bold text-foreground">R$ {formattedTotal}</span>
+              </p>
+            )}
+          </div>
+
+          <div>
             <Label htmlFor="observacoes">Observações (opcional)</Label>
             <Input
               id="observacoes"
               placeholder="Notas sobre a comanda..."
               value={observacoes}
               onChange={(e) => setObservacoes(e.target.value)}
+              disabled={isLoading}
             />
           </div>
 
@@ -113,5 +159,7 @@ export function NovaComandaDialog({ clientes }: NovaComandaDialogProps) {
     </Dialog>
   )
 }
+
+
 
 

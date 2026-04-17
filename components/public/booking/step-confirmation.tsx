@@ -12,6 +12,7 @@ interface StepConfirmationProps {
   booking: BookingState
   services: any[]
   barbers: any[]
+  isUserAuthenticated?: boolean
   onConfirm: () => void
   onBack: () => void
 }
@@ -20,6 +21,7 @@ export function StepConfirmation({
   booking,
   services,
   barbers,
+  isUserAuthenticated = false,
   onConfirm,
   onBack,
 }: StepConfirmationProps) {
@@ -55,6 +57,7 @@ export function StepConfirmation({
           subscription_plan_id: booking.subscriptionPlanId,
           client_name: booking.clientName,
           client_phone: booking.clientPhone,
+          client_email: booking.clientEmail || null,
           start_time: startTime.toISOString(),
           end_time: endTime.toISOString(),
         }),
@@ -194,6 +197,8 @@ export function StepConfirmation({
     </div>
   )
 }
+
+
 
 
 

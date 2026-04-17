@@ -65,3 +65,5 @@ export default async function BarbershopPage({ params }: BarbershopPageProps) {
   )
 }
 
+
+

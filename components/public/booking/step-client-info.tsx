@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { ChevronLeft } from 'lucide-react'
+import { ChevronLeft, CheckCircle2 } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 
@@ -18,12 +18,14 @@ interface StepClientInfoProps {
   clientData: ClientData
   onSubmit: (data: ClientData) => void
   onBack: () => void
+  isGuestMode?: boolean
 }
 
 export function StepClientInfo({
   clientData,
   onSubmit,
   onBack,
+  isGuestMode = true,
 }: StepClientInfoProps) {
   const [formData, setFormData] = useState(clientData)
   const [isLoading, setIsLoading] = useState(false)
@@ -46,28 +48,37 @@ export function StepClientInfo({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onBack}
-          className="hover:bg-accent"
-        >
-          <ChevronLeft className="w-5 h-5" />
-        </Button>
-        <div>
-          <h2 className="text-3xl font-bold">Suas Informações</h2>
-          <p className="text-muted-foreground mt-1">
-            Preencha seus dados para confirmar o agendamento
-          </p>
+      <div className="flex items-center gap-3">
+        {!isGuestMode && (
+          <div className="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-full bg-green-100">
+            <CheckCircle2 className="w-6 h-6 text-green-600" />
+          </div>
+        )}
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onBack}
+            className="hover:bg-accent"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </Button>
+          <div>
+            <h2 className="text-3xl font-bold tracking-tight">Suas Informações</h2>
+            <p className="text-muted-foreground mt-1 text-base">
+              {isGuestMode 
+                ? 'Preencha seus dados para confirmar o agendamento'
+                : 'Usando dados da sua conta autenticada'}
+            </p>
+          </div>
         </div>
       </div>
 
-      <Card className="p-6">
-        <form onSubmit={handleSubmit} className="space-y-4">
+      <Card className="p-6 sm:p-8 border-2 border-muted/30 rounded-2xl">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <Label htmlFor="name" className="text-base font-semibold">
-              Nome *
+              Nome {!isGuestMode && <span className="text-xs text-green-600 ml-2">(autenticado)</span>} *
             </Label>
             <Input
               id="name"
@@ -76,14 +87,14 @@ export function StepClientInfo({
               onChange={(e) =>
                 setFormData({ ...formData, name: e.target.value })
               }
-              className="mt-2"
+              className="mt-2 text-base"
               disabled={isLoading}
             />
           </div>
 
           <div>
             <Label htmlFor="phone" className="text-base font-semibold">
-              WhatsApp *
+              WhatsApp {!isGuestMode && <span className="text-xs text-green-600 ml-2">(autenticado)</span>} *
             </Label>
             <Input
               id="phone"
@@ -92,7 +103,7 @@ export function StepClientInfo({
               onChange={(e) =>
                 setFormData({ ...formData, phone: e.target.value })
               }
-              className="mt-2"
+              className="mt-2 text-base"
               disabled={isLoading}
               type="tel"
             />
@@ -100,7 +111,7 @@ export function StepClientInfo({
 
           <div>
             <Label htmlFor="email" className="text-base font-semibold">
-              Email (opcional)
+              Email {!isGuestMode && <span className="text-xs text-green-600 ml-2">(autenticado)</span>} (opcional)
             </Label>
             <Input
               id="email"
@@ -109,20 +120,38 @@ export function StepClientInfo({
               onChange={(e) =>
                 setFormData({ ...formData, email: e.target.value })
               }
-              className="mt-2"
+              className="mt-2 text-base"
               disabled={isLoading}
               type="email"
             />
           </div>
 
-          <Button
-            type="submit"
-            size="lg"
-            className="w-full mt-6"
-            disabled={isLoading}
-          >
-            {isLoading ? 'Processando...' : 'Continuar para Confirmação'}
-          </Button>
+          {!isGuestMode && (
+            <div className="p-4 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 rounded-xl">
+              <p className="text-sm text-green-800 dark:text-green-200">
+                ✓ Você está autenticado. Seus dados serão salvos automaticamente e usados nos próximos agendamentos.
+              </p>
+            </div>
+          )}
+
+          <div className="flex gap-3 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onBack}
+              disabled={isLoading}
+              className="flex-1 h-12 rounded-xl text-base font-semibold"
+            >
+              Voltar
+            </Button>
+            <Button 
+              type="submit" 
+              disabled={isLoading}
+              className="flex-1 h-12 rounded-xl text-base font-semibold"
+            >
+              {isLoading ? 'Processando...' : 'Continuar para Confirmação'}
+            </Button>
+          </div>
         </form>
       </Card>
     </div>
