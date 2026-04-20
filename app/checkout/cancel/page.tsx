@@ -1,11 +1,12 @@
 'use client'
 
+import { Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { AlertCircle } from 'lucide-react'
+import { AlertCircle, Loader2 } from 'lucide-react'
 
-export default function CheckoutCancelPage() {
+function CancelContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const barbershopId = searchParams.get('barbershopId')
@@ -53,5 +54,22 @@ export default function CheckoutCancelPage() {
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+export default function CheckoutCancelPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-b from-background to-secondary/10 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-12 pb-12 flex flex-col items-center gap-4">
+            <Loader2 className="h-8 w-8 animate-spin" />
+            <p>Carregando...</p>
+          </CardContent>
+        </Card>
+      </div>
+    }>
+      <CancelContent />
+    </Suspense>
   )
 }

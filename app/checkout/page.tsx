@@ -1,14 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Check, Lock, AlertCircle } from 'lucide-react'
+import { Check, Lock, AlertCircle, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
-export default function CheckoutPage() {
+function CheckoutContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const barbershopId = searchParams.get('barbershopId')
@@ -67,8 +67,7 @@ export default function CheckoutPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           barbershopId,
-          planId,
-          includeFiscal: planId === 'system+fiscal',
+          planType: planId === 'system' ? 'basic' : 'premium',
         }),
       })
 
@@ -213,6 +212,23 @@ export default function CheckoutPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-background to-secondary/5 flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-12 pb-12 flex flex-col items-center gap-4">
+            <Loader2 className="h-8 w-8 animate-spin" />
+            <p>Carregando...</p>
+          </CardContent>
+        </Card>
+      </div>
+    }>
+      <CheckoutContent />
+    </Suspense>
   )
 }
 

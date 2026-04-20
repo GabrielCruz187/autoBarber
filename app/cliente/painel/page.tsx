@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -42,7 +42,7 @@ interface SubscriptionPlan {
   beneficios: string[] | null
 }
 
-export default function ClientDashboard() {
+function PainelClienteContent() {
   const searchParams = useSearchParams()
   const token = searchParams.get('token')
 
@@ -379,68 +379,20 @@ export default function ClientDashboard() {
   )
 }
 
-function AppointmentCard({
-  appointment,
-  onCancel,
-  isCancelling,
-}: {
-  appointment: Appointment
-  onCancel: () => void
-  isCancelling: boolean
-}) {
-  const canCancel = new Date(appointment.start_time).getTime() - Date.now() > 24 * 60 * 60 * 1000
-
+export default function PainelClientePage() {
   return (
-    <Card>
-      <CardContent className="pt-6">
-        <div className="space-y-4">
-          <div className="flex justify-between items-start">
-            <div>
-              <h3 className="font-semibold text-lg">{appointment.service.name}</h3>
-              <p className="text-sm text-muted-foreground">
-                com {appointment.barber.first_name} {appointment.barber.last_name}
-              </p>
-            </div>
-            <Badge>{appointment.status === 'confirmed' ? 'Confirmado' : 'Pendente'}</Badge>
-          </div>
-
-          <div className="flex flex-wrap gap-4 text-sm">
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-              {new Date(appointment.start_time).toLocaleDateString('pt-BR')}
-            </div>
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-muted-foreground" />
-              {new Date(appointment.start_time).toLocaleTimeString('pt-BR', {
-                hour: '2-digit',
-                minute: '2-digit',
-              })}{' '}
-              - {new Date(appointment.end_time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-            </div>
-            <div className="flex items-center gap-2">
-              R$ {appointment.service.price}
-            </div>
-          </div>
-
-          {canCancel && (
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={onCancel}
-              disabled={isCancelling}
-              className="w-full"
-            >
-              <X className="h-4 w-4 mr-2" />
-              {isCancelling ? 'Cancelando...' : 'Cancelar Agendamento'}
-            </Button>
-          )}
-          {!canCancel && (
-            <p className="text-xs text-muted-foreground text-center py-2">
-              Cancelamentos devem ser realizados com até 24h de antecedência
-            </p>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-8 pb-8 flex flex-col items-center gap-4">
+            <div className="h-8 w-8 rounded-full border-4 border-muted border-t-primary animate-spin" />
+            <p className="text-muted-foreground">Carregando painel...</p>
+          </CardContent>
+        </Card>
+      </div>
+    }>
+      <PainelClienteContent />
+    </Suspense>
   )
 }
+

@@ -6,8 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { MessageCircle, Calendar, Zap } from 'lucide-react'
-import { ServiceGrid } from '@/components/customer/service-grid'
-import { AvailabilityCalendar } from '@/components/customer/availability-calendar'
+import { ServiceGrid } from '@/components/custumer/service-grid'
+import { AvailabilityCalendar } from '@/components/custumer/availability-calendar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import type { Barbershop, Service } from '@/lib/types'
 
