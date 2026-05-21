@@ -113,14 +113,19 @@ export function BookingPage({ barbershop, services, barbers }: BookingPageProps)
     if (!selectedService || !selectedBarber || !selectedDate || !selectedTime) return
     setSubmitting(true)
     try {
+      const startISO = `${format(selectedDate, 'yyyy-MM-dd')}T${selectedTime}:00`
+      const startDate = new Date(startISO)
+      const endDate = new Date(startDate.getTime() + selectedService.duration_minutes * 60_000)
+
       const res = await fetch('/api/booking', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           barbershop_id: barbershop.id,
           service_id: selectedService.id,
-          barber_id: selectedBarber.id,
-          start_time: `${format(selectedDate, 'yyyy-MM-dd')}T${selectedTime}:00`,
+          barber_id: selectedBarber?.id || null,
+          start_time: startISO,
+          end_time: endDate.toISOString(),
           client_name: form.name,
           client_phone: form.phone,
           client_email: form.email || undefined,
